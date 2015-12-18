@@ -18,6 +18,12 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QScrollArea" name="scrollArea">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Sunken</enum>
+       </property>
        <property name="verticalScrollBarPolicy">
         <enum>Qt::ScrollBarAsNeeded</enum>
        </property>
@@ -32,8 +38,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>584</width>
-          <height>529</height>
+          <width>616</width>
+          <height>531</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -96,6 +102,9 @@
         <widget class="QCheckBox" name="handshakeCheckBox">
          <property name="text">
           <string>&amp;Handshaking</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -161,12 +170,22 @@
           <string>Ti&amp;me scale</string>
          </property>
          <property name="buddy">
-          <cstring>spinBox</cstring>
+          <cstring>xScaleSpinBox</cstring>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="spinBox"/>
+        <widget class="QSpinBox" name="xScaleSpinBox">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+         <property name="value">
+          <number>20</number>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="Line" name="line_5">
@@ -178,7 +197,7 @@
        <item>
         <widget class="QCheckBox" name="syncX">
          <property name="text">
-          <string>CheckBox</string>
+          <string>Sync slider</string>
          </property>
          <property name="checked">
           <bool>true</bool>

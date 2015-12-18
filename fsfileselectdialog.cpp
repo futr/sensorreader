@@ -14,6 +14,11 @@ FSFileSelectDialog::~FSFileSelectDialog()
 {
     delete ui;
 }
+
+MicomFSFile *FSFileSelectDialog::getSelectedFile()
+{
+    return selectedFile;
+}
 void FSFileSelectDialog::setFileList(MicomFSFile *value, int fileCount )
 {
     // Setup file list
@@ -47,11 +52,11 @@ void FSFileSelectDialog::on_openButton_clicked()
     QList<QTreeWidgetItem *> items = ui->fileListWidget->selectedItems();
 
     if ( items.count() == 0 ) {
-        QMessageBox::information( this, tr( "Information" ), tr( "File is not selected" ) );
+        QMessageBox::information( this, tr( "Information" ), tr( "File is not selected.\nPlease select a file." ) );
 
         selectedFile = NULL;
 
-        reject();
+        return;
     }
 
     selectedFile = (MicomFSFile *)items[0]->data( 2, Qt::UserRole ).value<void *>();

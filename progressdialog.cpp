@@ -16,6 +16,7 @@ ProgressDialog::~ProgressDialog()
 void ProgressDialog::setProgressPos( int pos, int max, int bytesPerSec, QString fileName )
 {
     // Set progress bar position and label caption
+    ui->progressBar->setMaximum( max );
     ui->progressBar->setValue( pos );
 
     QString label;

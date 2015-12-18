@@ -13,6 +13,7 @@
 #include "progressdialog.h"
 #include "fsfileselectdialog.h"
 #include "writefileworker.h"
+#include "csvwritefileworker.h"
 #include "micomfs.h"
 
 namespace Ui {
@@ -44,6 +45,12 @@ private slots:
     void clearGraph();
 
     void on_readCardButton_clicked();
+
+    void setXScale( int scale );
+    // void updateHead( int x, double rawX );
+
+private:
+    QString saveLogFile( QString dirName );
 
 private:
     Ui::Widget *ui;

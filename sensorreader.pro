@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     progressdialog.cpp \
     micomfs_dev.c \
     micomfs.c \
-    fsfileselectdialog.cpp
+    fsfileselectdialog.cpp \
+    csvwritefileworker.cpp
 
 HEADERS  += widget.h \
     wavegraphwidget.h \
@@ -51,7 +52,8 @@ HEADERS  += widget.h \
     logicaldrivedialog.h \
     progressdialog.h \
     micomfs_dev.h \
-    fsfileselectdialog.h
+    fsfileselectdialog.h \
+    csvwritefileworker.h
 
 FORMS    += widget.ui \
     connectdialog.ui \

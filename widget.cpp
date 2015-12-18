@@ -92,6 +92,8 @@ Widget::Widget(QWidget *parent) :
     ui->velocity->setVisible( false );
 
     // Connect
+    connect( ui->xScaleSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setXScale(int)) );
+
     connect( sensor, SIGNAL(newAcceleration(QVector<double>)), ui->acc->wave, SLOT(enqueueData(QVector<double>)) );
     connect( sensor, SIGNAL(newAngularVelocity(QVector<double>)), ui->gyro->wave, SLOT(enqueueData(QVector<double>)) );
     connect( sensor, SIGNAL(newMagneticField(QVector<double>)), ui->mag->wave, SLOT(enqueueData(QVector<double>)) );
@@ -132,26 +134,28 @@ void Widget::on_connectButton_clicked()
         return;
     }
 
-    // Try handshake
-    QEventLoop loop;
-    QTimer timer;
+    if ( ui->handshakeCheckBox->isChecked() ) {
+        // Try handshake
+        QEventLoop loop;
+        QTimer timer;
 
-    connect( sensor, SIGNAL(handshakeACK()), &loop, SLOT(quit()), Qt::QueuedConnection );
-    connect( &timer, SIGNAL(timeout()), &loop, SLOT(quit()) );
+        connect( sensor, SIGNAL(handshakeACK()), &loop, SLOT(quit()), Qt::QueuedConnection );
+        connect( &timer, SIGNAL(timeout()), &loop, SLOT(quit()) );
 
-    sensor->sendHandshake();
+        sensor->sendHandshake();
 
-    timer.start( 2000 );
-    loop.exec( QEventLoop::ExcludeUserInputEvents );
+        timer.start( 2000 );
+        loop.exec( QEventLoop::ExcludeUserInputEvents );
 
-    // Check handshakeACK
-    if ( !sensor->getHandshaked() ) {
-        // Handsake failed
-        QMessageBox::critical( this, tr( "Error" ), tr( "Handshake failed" ) );
+        // Check handshakeACK
+        if ( !sensor->getHandshaked() ) {
+            // Handsake failed
+            QMessageBox::critical( this, tr( "Error" ), tr( "Handshake failed" ) );
 
-        sensor->closePort();
+            sensor->closePort();
 
-        return;
+            return;
+        }
     }
 
     // Complete
@@ -237,6 +241,137 @@ void Widget::on_readCardButton_clicked()
         return;
     }
 
+    // SDからログ保存
+    QString fileName = saveLogFile( dirName );
+
+    if ( fileName == "" ) {
+        return;
+    }
+
+    ////////// ログファイルからCSVへ
+
+    // ログファイル開く
+    QFile logFile;
+
+    logFile.setFileName( fileName );
+    logFile.open( QIODevice::ReadOnly );
+
+    // 先頭へ
+    logFile.seek( 2 );
+
+    // 保存用クラス実体化
+    QThread *writeFileThread = new QThread();
+    CSVWriteFileWorker *worker  = new CSVWriteFileWorker();
+    ProgressDialog *progress = new ProgressDialog( this );
+    progress->setProgressPos( 0, 0, 0, "Null" );
+    QMessageBox warningBox;
+
+    // Setup warning box
+    warningBox.setWindowTitle( tr( "Warning" ) );
+    warningBox.setText( tr( "File writing failed" ) );
+    warningBox.setInformativeText( tr( "A problem has occurred on current operation." ) );
+    warningBox.setIcon( QMessageBox::Warning );
+    warningBox.setStandardButtons( QMessageBox::Ok );
+
+    // フィルター登録
+    QMap<int, QList<AbstractDataFilter *> > filterMap;
+    SensorParameters params;
+    SensorParameters::Parameter param = params.getParameter( ui->sensorNameBox->currentText().toStdString() );
+
+    filterMap[ID_MPU9150_ACC] = QList<AbstractDataFilter *>() << new AccDataFilter();
+    filterMap[ID_MPU9150_GYRO] = QList<AbstractDataFilter *>() << new GyroDataFilter();
+    filterMap[ID_AK8975] = QList<AbstractDataFilter *>() << new MagDataFilter();
+    filterMap[ID_MPU9150_TEMP] = QList<AbstractDataFilter *>() << new TempDataFilter();
+    filterMap[ID_LPS331AP] = QList<AbstractDataFilter *>() << new PressDataFilter();
+
+    // 解像度設定
+    dynamic_cast<AccDataFilter *>( filterMap[ID_MPU9150_ACC].last() )->setResolution( param.accelerationResolution );
+    dynamic_cast<GyroDataFilter *>( filterMap[ID_MPU9150_GYRO].last() )->setResolution( param.angularVelocityResolution );
+    dynamic_cast<MagDataFilter *>( filterMap[ID_AK8975].last() )->setResolution( param.magneticFieldResolution );
+
+    // (実験)後始末関数をラムダで作ってみる
+    auto deleteAll = [&] {
+        foreach ( QList<AbstractDataFilter *> filterList, filterMap ) {
+            foreach ( AbstractDataFilter *filter,  filterList ) {
+                delete filter;
+            }
+        }
+
+        delete worker;
+        delete writeFileThread;
+    };
+
+    // フィルター設定
+    bool opened = true;
+
+    // 各フィルターオープン
+    foreach ( QList<AbstractDataFilter *> filterList, filterMap ) {
+        foreach ( AbstractDataFilter *filter, filterList ) {
+            // ファイル名指定 012345_defaultName.csv
+            filter->setFileName( QFileInfo( logFile.fileName() ).baseName() + "_" + filter->getFileName() );
+
+            // 開く
+            if ( !filter->openFile( dirName ) ) {
+                opened = false;
+            }
+        }
+    }
+
+    // オープンエラーチェック
+    if ( !opened ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a file to save" ) );
+
+        deleteAll();
+
+        return;
+    }
+
+    // ワーカー設定
+    worker->moveToThread( writeFileThread );
+    worker->setParameter( &logFile, filterMap );
+    worker->setup();
+
+    // シグナル接続
+    connect( worker,          SIGNAL(finished()),    progress, SLOT(accept()) );
+    connect( progress,        SIGNAL(finished(int)), worker,   SLOT(stopSave()), Qt::DirectConnection );
+    connect( writeFileThread, SIGNAL(started()),     worker,   SLOT(doSaveFile()) );
+    connect( worker, SIGNAL(progress(int,int,int,QString)), progress, SLOT(setProgressPos(int,int,int,QString)), Qt::QueuedConnection );
+
+    // 開始
+    writeFileThread->start();
+
+    // プログレスダイアログ表示
+    progress->setWindowFlags( Qt::MSWindowsFixedSizeDialogHint | Qt::Dialog );
+    progress->exec();
+
+    // Wait Save Thread
+    writeFileThread->quit();
+    writeFileThread->wait();
+
+    // Check a error
+    if ( worker->error() ) {
+        warningBox.exec();
+    }
+
+    // 破棄
+    deleteAll();
+
+    ////////// CSVを読み込み
+}
+
+void Widget::setXScale( int scale )
+{
+    ui->acc->wave->setXScale( scale );
+    ui->gyro->wave->setXScale( scale );
+    ui->mag->wave->setXScale( scale );
+    ui->temp->wave->setXScale( scale );
+    ui->pressure->wave->setXScale( scale );
+}
+
+QString Widget::saveLogFile( QString dirName )
+{
+    // SDからデータを読みこみログとして保存
+
     // Open Window's logical drive
     MicomFS fs;
     LogicalDriveDialog *dialog = new LogicalDriveDialog();
@@ -271,7 +406,7 @@ void Widget::on_readCardButton_clicked()
         if ( handle == INVALID_HANDLE_VALUE ) {
             QMessageBox::critical( this, tr( "Error" ), tr( "Can't open selected drive" ) );
 
-            return;
+            return "";
         }
 
         // Get Physical drive name
@@ -288,7 +423,7 @@ void Widget::on_readCardButton_clicked()
         if ( ret == 0 ) {
             QMessageBox::critical( this, tr( "Error" ), tr( "Can't get physical drive name" ) );
 
-            return;
+            return "";
         }
 
         // Close
@@ -298,7 +433,7 @@ void Widget::on_readCardButton_clicked()
         if ( !micomfs_open_device( &fs, (char *)wbuf, MicomFSDeviceWinDrive, MicomFSDeviceModeReadWrite ) ) {
             QMessageBox::critical( this, tr( "Error" ), tr( "Can't open device" ) );
 
-            return;
+            return "";
         }
 
         // Open Filesystem
@@ -307,9 +442,11 @@ void Widget::on_readCardButton_clicked()
 
             micomfs_close_device( &fs );
 
-            return;
+            return "";
         }
 #endif
+    } else {
+        return "";
     }
 
     // Create file list
@@ -329,7 +466,7 @@ void Widget::on_readCardButton_clicked()
         free( fileList );
         micomfs_close_device( &fs );
 
-        return;
+        return "";
     }
 
     // Get file pointer
@@ -368,7 +505,7 @@ void Widget::on_readCardButton_clicked()
             free( fileList );
             micomfs_close_device( &fs );
 
-            return;
+            return "";
         }
     }
 
@@ -420,8 +557,10 @@ void Widget::on_readCardButton_clicked()
     delete saveFileThread;
 
     // 閉じる
+    free( fileList );
     micomfs_fclose( fp );
-
-    // close file
+    micomfs_close_device( &fs );
     file.close();
+
+    return file.fileName();
 }

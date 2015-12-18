@@ -166,6 +166,8 @@ double WaveGraphWidget::getXScale() const
 void WaveGraphWidget::setXScale(double value)
 {
     xScale = value;
+
+    update();
 }
 
 bool WaveGraphWidget::getAutoUpdateYMax() const
