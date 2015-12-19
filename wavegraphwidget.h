@@ -10,6 +10,7 @@
 #include <QPolygonF>
 #include <QMouseEvent>
 #include <QLinkedList>
+#include <QDebug>
 
 class WaveGraphWidget : public QWidget
 {
@@ -120,12 +121,15 @@ public:
     int getDefaultFontSize() const;
     void setDefaultFontSize(int value);
 
+    bool getDefaultHeadUpdate() const;
+
 private:
     DataQueue::iterator pixPosToIterator( int x );
     void resetIterator();
     void updateCursor( int x );
     void updateRightCursor( int x );
     int getCurrentPixXFromRawX( double x );
+    void emitHeadChanged( bool indexOnly = false );
 
 private:
     QColor bgColor;
@@ -170,6 +174,8 @@ private:
     bool showHeadValue;
     bool showYGridValue;
 
+    bool defaultHeadUpdate;
+
     // raw * xScale = pixel
     // xGrid * xScale = pixel
 
@@ -187,6 +193,7 @@ private:
 signals:
     void moveCursor( QPair<int, QVector<double> > );
     void headChanged( int index );
+    void headChanged( double rawX );
     void queueSizeChanged( int size );
     void rangeChanged( int min, int max );
 
@@ -195,7 +202,9 @@ public slots:
     void enqueueData( const QVector<double> &data, bool updateHead );
     void enqueueData( const QVector<double> &data );
     void setHeadIndex(int value);
-    void setHeadFromRawX( double x, const MoveMode mode );
+    void setHeadFromRawX(double x, const MoveMode mode , bool emitChanged);
+    void setHeadFromRawXSmall( double x );
+    void setDefaultHeadUpdate(bool value);
 
     // QWidget interface
 protected:

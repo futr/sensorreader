@@ -23,11 +23,16 @@ Widget::Widget(QWidget *parent) :
 
     ui->sensorNameBox->addItems( sensorNameList );
 
+    ui->scrollAreaWidgetContents->layout()->setSpacing( 0 );
+    ui->scrollAreaWidgetContents->layout()->setContentsMargins( 0, 0, 0, 0 );
+
     enableSerialButtons( false );
 
     // Setup graph
+    createWaveList();
+
     ui->acc->setLabel( tr( "Acceleration" ) );
-    ui->acc->wave->setUpSize( 3, 10000 );
+    ui->acc->wave->setUpSize( 3, 1000 );
     ui->acc->wave->setXScale( 20 );
     ui->acc->wave->setAutoUpdateYMax( true );
     ui->acc->wave->setAutoUpdateYMin( true );
@@ -36,11 +41,12 @@ Widget::Widget(QWidget *parent) :
     ui->acc->wave->setLegendFontSize( 12 );
     ui->acc->wave->setDefaultFontSize( 12 );
     ui->acc->wave->setShowCursor( true );
+    ui->acc->wave->setXName( "time[sec]" );
     ui->acc->wave->setNames( QStringList() << "x[G]" << "y[G]" << "z[G]" );
     ui->acc->wave->setColors( QList<QColor>() << Qt::red << Qt::green << Qt::blue );
 
     ui->gyro->setLabel( tr( "Angular Velocity" ) );
-    ui->gyro->wave->setUpSize( 3, 10000 );
+    ui->gyro->wave->setUpSize( 3, 1000 );
     ui->gyro->wave->setXScale( 20 );
     ui->gyro->wave->setAutoUpdateYMax( true );
     ui->gyro->wave->setAutoUpdateYMin( true );
@@ -49,11 +55,12 @@ Widget::Widget(QWidget *parent) :
     ui->gyro->wave->setLegendFontSize( 12 );
     ui->gyro->wave->setDefaultFontSize( 12 );
     ui->gyro->wave->setShowCursor( true );
+    ui->gyro->wave->setXName( "time[sec]" );
     ui->gyro->wave->setNames( QStringList() << "x[dps]" << "y[dps]" << "z[dps]" );
     ui->gyro->wave->setColors( QList<QColor>() << Qt::red << Qt::green << Qt::blue );
 
     ui->mag->setLabel( tr( "Magnetic field" ) );
-    ui->mag->wave->setUpSize( 3, 10000 );
+    ui->mag->wave->setUpSize( 3, 1000 );
     ui->mag->wave->setXScale( 20 );
     ui->mag->wave->setAutoUpdateYMax( true );
     ui->mag->wave->setAutoUpdateYMin( true );
@@ -62,11 +69,12 @@ Widget::Widget(QWidget *parent) :
     ui->mag->wave->setLegendFontSize( 12 );
     ui->mag->wave->setDefaultFontSize( 12 );
     ui->mag->wave->setShowCursor( true );
+    ui->mag->wave->setXName( "time[sec]" );
     ui->mag->wave->setNames( QStringList() << "x[µT]" << "y[µT]" << "z[µT]" );
     ui->mag->wave->setColors( QList<QColor>() << Qt::red << Qt::green << Qt::blue );
 
     ui->temp->setLabel( tr( "Temperature" ) );
-    ui->temp->wave->setUpSize( 1, 10000 );
+    ui->temp->wave->setUpSize( 1, 1000 );
     ui->temp->wave->setXScale( 20 );
     ui->temp->wave->setAutoUpdateYMax( true );
     ui->temp->wave->setAutoUpdateYMin( true );
@@ -74,11 +82,12 @@ Widget::Widget(QWidget *parent) :
     ui->temp->wave->setLegendFontSize( 12 );
     ui->temp->wave->setDefaultFontSize( 12 );
     ui->temp->wave->setShowCursor( true );
+    ui->temp->wave->setXName( "time[sec]" );
     ui->temp->wave->setNames( QStringList() << "x[℃]" );
     ui->temp->wave->setColors( QList<QColor>() << Qt::blue );
 
     ui->pressure->setLabel( tr( "Pressure" ) );
-    ui->pressure->wave->setUpSize( 1, 10000 );
+    ui->pressure->wave->setUpSize( 1, 1000 );
     ui->pressure->wave->setXScale( 20 );
     ui->pressure->wave->setAutoUpdateYMax( true );
     ui->pressure->wave->setAutoUpdateYMin( true );
@@ -86,6 +95,7 @@ Widget::Widget(QWidget *parent) :
     ui->pressure->wave->setLegendFontSize( 12 );
     ui->pressure->wave->setDefaultFontSize( 12 );
     ui->pressure->wave->setShowCursor( true );
+    ui->pressure->wave->setXName( "time[sec]" );
     ui->pressure->wave->setNames( QStringList() << "x[hPa]" );
     ui->pressure->wave->setColors( QList<QColor>() << Qt::blue );
 
@@ -93,7 +103,14 @@ Widget::Widget(QWidget *parent) :
 
     // Connect
     connect( ui->xScaleSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setXScale(int)) );
+    connect( ui->updateHeadCheckBox, SIGNAL(toggled(bool)), this, SLOT(setDefaultUpdateHead(bool)) );
 
+    for ( auto &elem : waveList ) {
+        // Have to use QueuedConnection Not using causes atomic error ( bug? non-reentrant? )
+        connect( elem, SIGNAL(headChanged(double)), this, SLOT( headUpdated(double) ) );
+    }
+
+    // Connect new data signal
     connect( sensor, SIGNAL(newAcceleration(QVector<double>)), ui->acc->wave, SLOT(enqueueData(QVector<double>)) );
     connect( sensor, SIGNAL(newAngularVelocity(QVector<double>)), ui->gyro->wave, SLOT(enqueueData(QVector<double>)) );
     connect( sensor, SIGNAL(newMagneticField(QVector<double>)), ui->mag->wave, SLOT(enqueueData(QVector<double>)) );
@@ -361,11 +378,28 @@ void Widget::on_readCardButton_clicked()
 
 void Widget::setXScale( int scale )
 {
-    ui->acc->wave->setXScale( scale );
-    ui->gyro->wave->setXScale( scale );
-    ui->mag->wave->setXScale( scale );
-    ui->temp->wave->setXScale( scale );
-    ui->pressure->wave->setXScale( scale );
+    for ( auto &elem : waveList ) {
+        elem->setXScale( scale );
+    }
+}
+
+void Widget::headUpdated(double rawX)
+{
+    // wave widget invoke this when head is changed
+    if ( !ui->syncX->isChecked() ) {
+        return;
+    }
+
+    for ( auto &elem : waveList ) {
+        elem->setHeadFromRawXSmall( rawX );
+    }
+}
+
+void Widget::setDefaultUpdateHead(bool val)
+{
+    for ( auto &elem : waveList ) {
+        elem->setDefaultHeadUpdate( val );
+    }
 }
 
 QString Widget::saveLogFile( QString dirName )
@@ -563,4 +597,13 @@ QString Widget::saveLogFile( QString dirName )
     file.close();
 
     return file.fileName();
+}
+
+void Widget::createWaveList()
+{
+    waveList << ui->acc->wave;
+    waveList << ui->gyro->wave;
+    waveList << ui->mag->wave;
+    waveList << ui->pressure->wave;
+    waveList << ui->temp->wave;
 }

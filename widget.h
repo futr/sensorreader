@@ -9,11 +9,13 @@
 #include <QThread>
 #include <QTimer>
 #include <QFileDialog>
+#include <QList>
 #include "logicaldrivedialog.h"
 #include "progressdialog.h"
 #include "fsfileselectdialog.h"
 #include "writefileworker.h"
 #include "csvwritefileworker.h"
+#include "wavegraphwidget.h"
 #include "micomfs.h"
 
 namespace Ui {
@@ -47,15 +49,20 @@ private slots:
     void on_readCardButton_clicked();
 
     void setXScale( int scale );
-    // void updateHead( int x, double rawX );
+    void headUpdated( double rawX );
+    void setDefaultUpdateHead( bool val );
 
 private:
     QString saveLogFile( QString dirName );
+
+    void createWaveList();
 
 private:
     Ui::Widget *ui;
     SerialSensorManager *sensor;
     QStatusBar *bar;
+
+    QList<WaveGraphWidget *>waveList;
 
     // QWidget interface
 protected:

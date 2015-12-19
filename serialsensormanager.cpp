@@ -3,7 +3,10 @@
 SerialSensorManager::SerialSensorManager(QObject *parent) : QObject(parent),
     baudRate( 9600 )
 {
-    connect( &port, SIGNAL(readyRead()), this, SLOT(readData()) );
+    // Register types for SIGNAL/SLOT communication
+    // qRegisterMetaType<QVector<double>>("QVector<double>");
+
+    connect( &port, SIGNAL(readyRead()), this, SLOT(readData()), Qt::QueuedConnection );
 }
 
 SerialSensorManager::~SerialSensorManager()
@@ -86,6 +89,9 @@ void SerialSensorManager::flush()
 void SerialSensorManager::readData()
 {
     // Reading process
+
+    // qDebug() << port.bytesAvailable();
+
     while ( true ) {
         if ( status == WaitHead ) {
             unsigned char data;
@@ -165,6 +171,11 @@ void SerialSensorManager::readData()
                 break;
             default:
                 break;
+            }
+
+            // Clear fifo if need
+            if ( port.bytesAvailable() > 200 ) {
+                port.readAll();
             }
 
             // Next data

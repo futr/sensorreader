@@ -18,11 +18,12 @@ Graph::Graph(QWidget *parent) : QWidget(parent),
     layout->addWidget( label );
     layout->addWidget( wave );
     layout->addWidget( bar );
+    layout->setSpacing( 0 );
 
     // Connect
-    connect( wave, SIGNAL(rangeChanged(int,int)), bar, SLOT(setRange(int,int)) );
-    connect( bar, SIGNAL(valueChanged(int)), wave, SLOT(setHeadIndex(int)) );
-    connect( wave, SIGNAL(headChanged(int)), bar, SLOT(setValue(int)) );
+    connect( wave, SIGNAL(rangeChanged(int,int)), bar, SLOT(setRange(int,int)), Qt::DirectConnection );
+    connect( bar, SIGNAL(valueChanged(int)), wave, SLOT(setHeadIndex(int)), Qt::DirectConnection );
+    connect( wave, SIGNAL(headChanged(int)), bar, SLOT(setValue(int)), Qt::DirectConnection );
 }
 
 void Graph::setLabel(const QString &text)

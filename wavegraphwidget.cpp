@@ -34,8 +34,8 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     autoUpdateYMin = false;
     autoZeroCenter = false;
 
-    legendOffsetX = 10;
-    legendOffsetY = 10;
+    legendOffsetX = 5;
+    legendOffsetY = 5;
     legendLineWidth = 2;
     legendLineLength = 30;
     legendFontSize = 20;
@@ -50,6 +50,8 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     showCursorValue = true;
     showHeadValue   = true;
     showYGridValue  = true;
+
+    defaultHeadUpdate = true;
 }
 
 QColor WaveGraphWidget::getBgColor() const
@@ -106,7 +108,7 @@ void WaveGraphWidget::setUpSize( int columnCount, int queueSize )
 
 void WaveGraphWidget::enqueueData( const QVector<double> &data )
 {
-    enqueueData( data, true );
+    enqueueData( data, defaultHeadUpdate );
 }
 
 void WaveGraphWidget::enqueueData( const QVector<double> &data, bool updateHead )
@@ -139,12 +141,16 @@ void WaveGraphWidget::enqueueData( const QVector<double> &data, bool updateHead 
         if ( cursor == dataQueue.begin() )  cursor++;
         if ( rightCursor == dataQueue.begin() )  rightCursor++;
 
-        headIndex--;
-
-        if ( headIndex < 0 ) headIndex = 0;
-
         // dequeue
         dataQueue.removeFirst();
+
+        // move head
+        headIndex--;
+
+        if ( headIndex < 0 ) {
+            headIndex = 0;
+            head = dataQueue.begin();
+        }
 
         headmove = true;
     }
@@ -152,7 +158,7 @@ void WaveGraphWidget::enqueueData( const QVector<double> &data, bool updateHead 
     emit rangeChanged( 0, dataQueue.size() - 1 );
 
     if ( headmove ) {
-        emit headChanged( headIndex );
+        emitHeadChanged( true );
     }
 
     update();
@@ -355,6 +361,32 @@ int WaveGraphWidget::getCurrentPixXFromRawX(double x)
 
     return width() - ( headX - x ) * xScale;
 }
+
+void WaveGraphWidget::emitHeadChanged(bool indexOnly)
+{
+    // indexOnly option is needed to prevent signal/slot loop
+
+    if ( dataQueue.size() > 0 ) {
+        emit headChanged( headIndex );
+
+        if ( !indexOnly ) {
+            emit headChanged( (*head)[0] );
+        }
+    } else {
+        // emit headChanged( 0 );
+        // emit headChanged( 0 );
+    }
+}
+bool WaveGraphWidget::getDefaultHeadUpdate() const
+{
+    return defaultHeadUpdate;
+}
+
+void WaveGraphWidget::setDefaultHeadUpdate(bool value)
+{
+    defaultHeadUpdate = value;
+}
+
 int WaveGraphWidget::getDefaultFontSize() const
 {
     return defaultFontSize;
@@ -477,12 +509,12 @@ void WaveGraphWidget::setHeadIndex(int value)
 
     headIndex = value;
 
-    emit headChanged( value );
+    emitHeadChanged();
 
     update();
 }
 
-void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode)
+void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitChanged)
 {
     // Move head to real x nearest iterator
     if ( dataQueue.size() == 0 ) return;
@@ -544,7 +576,7 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode)
         // reach the end of loop
         if ( newHead == dataQueue.end() ) {
             head = dataQueue.end() - 1;
-            headIndex += ( diff - 1 );
+            headIndex = dataQueue.count() - 1;
 
             updated = true;
         }
@@ -594,19 +626,24 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode)
         }
 
         // reach the end of loop
-        if ( newHead == dataQueue.begin() ) {
+        if ( newHead == dataQueue.begin() && updated == false ) {
             head = dataQueue.begin();
-            headIndex -= diff;
+            headIndex = 0;
 
             updated = true;
         }
     }
 
-    if ( updated ) {
+    if ( updated && emitChanged ) {
         update();
 
-        emit headChanged( headIndex );
+        emitHeadChanged( true );
     }
+}
+
+void WaveGraphWidget::setHeadFromRawXSmall(double x)
+{
+    setHeadFromRawX( x, SmallNearest, true );
 }
 
 int WaveGraphWidget::getQueueSize()
@@ -713,6 +750,11 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
         // enqueue
         drawQueue << QPair<int, QVector<double> >( x, *it );
 
+        // check pix x
+        if ( x >= width() ) {
+            break;
+        }
+
         // min, max
         for ( int i = 0; i < (*it).size(); i++ ) {
             if ( minRawY[i] > (*it)[i] ) {
@@ -722,11 +764,6 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
             if ( maxRawY[i] < (*it)[i] ) {
                 maxRawY[i] = (*it)[i];
             }
-        }
-
-        // check pix x
-        if ( x >= width() ) {
-            break;
         }
 
         if ( it == dataQueue.begin() ) {
@@ -768,34 +805,40 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
 
         // Draw zero value
         if ( showYGridValue ) {
+            font.setPixelSize( defaultFontSize );
+            p.setFont( font );
+
             QString str = QString::number( 0 );
             QRect fr = p.fontMetrics().boundingRect( str );
 
             pen.setColor( zeroGridColor );
-            pen.setWidth( 1 );
             p.setPen( pen );
-            p.drawText( width() - fr.width() - 5, zeroY - 5, str );
+            p.drawText( QRectF( width() - fr.width() - 2, zeroY - fr.height(), fr.width(), fr.height() ), str );
         }
     }
 
     // Draw Y Grid value
     if ( showYGridValue ) {
+        font.setPixelSize( defaultFontSize );
+        p.setFont( font );
+
         QString strTop = QString::number( localMaxY );
         QString strBottom = QString::number( localMinY );
         QRect frTop = p.fontMetrics().boundingRect( strTop );
         QRect frBottom = p.fontMetrics().boundingRect( strBottom );
 
-        pen.setColor( gridColor );
-        pen.setWidth( 1 );
+        pen.setColor( QColor( 130, 130, 130 ) );
         p.setPen( pen );
-        p.drawText( width() - frTop.width() - 5, frTop.height(), strTop );
-        p.drawText( width() - frBottom.width() - 5, height() - 2, strBottom );
+
+        p.drawText( QRectF( width() - frTop.width() - 2, 0, frTop.width(), frTop.height() ), strTop );
+        p.drawText( QRectF( width() - frBottom.width() - 2, height() - frBottom.height(), frBottom.width() + 5, frBottom.height() ), strBottom );
     }
 
     // Draw wave
-    p.setRenderHint( QPainter::Antialiasing );
-
     QList<QPolygon> polygonList;
+
+    // Use AA
+    p.setRenderHint( QPainter::Antialiasing );
 
     for ( int col = 0; col < columnCount; col++ ) {
         polygonList << QPolygon();
@@ -838,6 +881,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
         p.drawPolyline( polygonList[col] );
     }
 
+    // Disable AA
     p.setRenderHint( QPainter::Antialiasing, false );
 
     // Draw color filter
@@ -870,23 +914,25 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
     p.setFont( font );
 
     for ( int col = 0; col < columnCount; col++ ) {
-        int fh = p.fontMetrics().height();
         // Create str
         QString str = names[col];
 
         if ( showHeadValue ) {
-            str = str + " : " + QString::number( (*head)[col + 1] );
+            str = str + " : " + QString::number( (*head)[col + 1], 'f' );
         }
+
+        QRect fr = p.fontMetrics().boundingRect( str );
+
+        p.fillRect( legendOffsetX, legendOffsetY + col * fr.height(), fr.width() + legendLineLength + 5, fr.height(), QColor( 255, 255, 255, 200 ) );
 
         pen.setColor( colors[col] );
         pen.setWidth( legendLineWidth );
         p.setPen( pen );
-        p.drawLine( legendOffsetX, legendOffsetY + col * fh + fh / 2, legendOffsetX + legendLineLength, legendOffsetY + fh / 2 + col * fh );
+        p.drawLine( legendOffsetX, legendOffsetY + col * fr.height() + fr.height() / 2, legendOffsetX + legendLineLength, legendOffsetY + col * fr.height() + fr.height() / 2 );
 
         pen.setColor( Qt::black );
-        pen.setWidth( 1 );
         p.setPen( pen );
-        p.drawText( legendOffsetX + legendLineLength + 5, legendOffsetY + col * fh + fh / 2, str );
+        p.drawText( QRectF( legendOffsetX + legendLineLength + 5, legendOffsetY + col * fr.height(), fr.width(), fr.height() ), str );
     }
 
     // Draw cursor
@@ -905,31 +951,31 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
                 p.setFont( font );
 
                 for ( int col = 0; col < columnCount; col++ ) {
-                    int fh = p.fontMetrics().height();
-
                     // Create str
-                    QString str = names[col] + " : " + QString::number( (*cursor)[col + 1] );
+                    QString str = names[col] + " : " + QString::number( (*cursor)[col + 1], 'f' );
                     QRect fr = p.fontMetrics().boundingRect( str );
+
+                    p.fillRect( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height(), fr.width(), fr.height(), QColor( 255, 255, 255, 200 ) );
 
                     pen.setColor( colors[col] );
                     pen.setWidth( 2 );
                     p.setPen( pen );
-                    p.drawLine( cursorX - fr.width() - 10 - 10, height() - ( columnCount - 1 - col ) * fh - 5, cursorX - fr.width() - 10 - 5, height() - ( columnCount - 1 - col ) * fh - 5 );
+                    p.drawLine( cursorX - fr.width() - 10 - 10, height() - ( columnCount - 1 - col ) * fr.height() - fr.height() / 2, cursorX - fr.width() - 10 - 5, height() - ( columnCount - 1 - col ) * fr.height() - fr.height() / 2 );
 
                     pen.setColor( Qt::black );
-                    pen.setWidth( 1 );
                     p.setPen( pen );
-                    p.drawText( cursorX - fr.width() - 10, height() - ( columnCount - 1 - col ) * fh - 5, str );
+                    p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height(), fr.width(), fr.height() ), str );
                 }
 
                 // Draw x value
                 QString str = xName + " : " + QString::number( (*cursor)[0], 'f' );
                 QRect fr = p.fontMetrics().boundingRect( str );
 
+                p.fillRect( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height(), fr.width(), fr.height(), QColor( 255, 255, 255, 200 ) );
+
                 pen.setColor( Qt::black );
-                pen.setWidth( 1 );
                 p.setPen( pen );
-                p.drawText( cursorX - fr.width() - 10, height() - columnCount * fr.height() - 5, str );
+                p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height(), fr.width(), fr.height() ), str );
             }
         }
     }

@@ -38,7 +38,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>616</width>
+          <width>586</width>
           <height>531</height>
          </rect>
         </property>
@@ -188,19 +188,29 @@
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line_5">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QCheckBox" name="syncX">
+         <property name="text">
+          <string>S&amp;ync slider</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="syncX">
+        <widget class="QCheckBox" name="updateHeadCheckBox">
          <property name="text">
-          <string>Sync slider</string>
+          <string>Update head</string>
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
