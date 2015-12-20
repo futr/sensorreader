@@ -23,7 +23,7 @@ public slots:
     void setFileList(MicomFSFile *value, int fileCount);
 
 private slots:
-    void on_openButton_clicked();
+    void okClicked();
 
 private:
     Ui::FSFileSelectDialog *ui;

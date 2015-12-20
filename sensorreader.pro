@@ -11,6 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport
 TARGET = sensorreader
 TEMPLATE = app
 
+TRANSLATIONS = sr_ja.ts
+
 CONFIG += C++11
 
 SOURCES += main.cpp\
@@ -32,7 +34,9 @@ SOURCES += main.cpp\
     micomfs_dev.c \
     micomfs.c \
     fsfileselectdialog.cpp \
-    csvwritefileworker.cpp
+    csvwritefileworker.cpp \
+    tabledatareader.cpp \
+    dataselectdialog.cpp
 
 HEADERS  += widget.h \
     wavegraphwidget.h \
@@ -53,10 +57,20 @@ HEADERS  += widget.h \
     progressdialog.h \
     micomfs_dev.h \
     fsfileselectdialog.h \
-    csvwritefileworker.h
+    csvwritefileworker.h \
+    tabledatareader.h \
+    dataselectdialog.h
 
 FORMS    += widget.ui \
     connectdialog.ui \
     progressdialog.ui \
     logicaldrivedialog.ui \
-    fsfileselectdialog.ui
+    fsfileselectdialog.ui \
+    dataselectdialog.ui
+
+win32 {
+    RC_FILE = win.rc
+}
+
+DISTFILES += \
+    win.rc

@@ -38,7 +38,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>586</width>
+          <width>616</width>
           <height>531</height>
          </rect>
         </property>
@@ -55,6 +55,15 @@
             <bool>true</bool>
            </property>
           </widget>
+         </item>
+         <item>
+          <widget class="Graph" name="vLen" native="true"/>
+         </item>
+         <item>
+          <widget class="Graph" name="pos" native="true"/>
+         </item>
+         <item>
+          <widget class="Graph" name="posLen" native="true"/>
          </item>
          <item>
           <widget class="Graph" name="mag" native="true"/>

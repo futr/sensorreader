@@ -45,8 +45,7 @@ void FSFileSelectDialog::setFileList(MicomFSFile *value, int fileCount )
     }
 }
 
-
-void FSFileSelectDialog::on_openButton_clicked()
+void FSFileSelectDialog::okClicked()
 {
     // Open
     QList<QTreeWidgetItem *> items = ui->fileListWidget->selectedItems();

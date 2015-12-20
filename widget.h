@@ -1,6 +1,9 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
+#include <QTranslator>
+#include <QLibraryInfo>
+
 #include <QWidget>
 #include <QStatusBar>
 #include "serialsensormanager.h"
@@ -10,6 +13,12 @@
 #include <QTimer>
 #include <QFileDialog>
 #include <QList>
+#include <QVector>
+#include <QVector3D>
+#include <QVector4D>
+#include <QMatrix4x4>
+#include <QVector2D>
+#include <QtMath>
 #include "logicaldrivedialog.h"
 #include "progressdialog.h"
 #include "fsfileselectdialog.h"
@@ -17,6 +26,8 @@
 #include "csvwritefileworker.h"
 #include "wavegraphwidget.h"
 #include "micomfs.h"
+#include "tabledatareader.h"
+#include "dataselectdialog.h"
 
 namespace Ui {
 class Widget;
@@ -46,6 +57,8 @@ private slots:
     void enableSerialButtons( bool enable = true );
     void clearGraph();
 
+    void enableAnalyzedGraph( bool enable = true );
+
     void on_readCardButton_clicked();
 
     void setXScale( int scale );
@@ -56,6 +69,16 @@ private:
     QString saveLogFile( QString dirName );
 
     void createWaveList();
+
+    // For analysis
+    bool analyzeLog(QString dirName, QString accFileName, QString gyroFileName, QString analyzedFileName, double xUnit);
+
+    QVector3D rowToVec3D( QVector< double > row );
+    QVector<double> getColumnVector( const QList<QVector3D> &list, int column, int startRow, int count );
+    QVector<double> getColumnVector( const QVector<double> &vector, int startRow, int count );
+    double vectorLength( const QVector<double> &vector );
+    QVector<QVector3D> groundAxisFromG(QVector3D g );
+    double calcArea( QVector2D p1, QVector2D p2 );
 
 private:
     Ui::Widget *ui;

@@ -88,7 +88,7 @@ void CSVWriteFileWorker::doSaveFile( void )
             // シグネチャ == 0,LOG_END_SIGNATUREなので終了
             break;
         } else if ( signature != LOG_SIGNATURE && signature != LOG_SIGNATURE_OLD ) {
-            qWarning( "シグネチャが一致しない : sig(%d) id(%d) size(%d) pos(%d)", signature, devID, dataSize, (int)m_logFile->pos() );
+            // qWarning( "シグネチャが一致しない : sig(%d) id(%d) size(%d) pos(%d)", signature, devID, dataSize, (int)m_logFile->pos() );
 
             m_error = true;
 

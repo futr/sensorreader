@@ -96,7 +96,7 @@ QString LogicalDriveDialog::getSelectedLogicalDriveName()
     return ui->driveComboBox->currentText();
 }
 
-void LogicalDriveDialog::on_okButton_clicked()
+void LogicalDriveDialog::okClicked()
 {
     // OK
     if ( ui->driveComboBox->currentIndex() < 0 ) {

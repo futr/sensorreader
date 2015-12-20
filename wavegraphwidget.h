@@ -46,7 +46,6 @@ public:
     void updateHead();
 
     double getXScale() const;
-    void setXScale(double value);
 
     bool getAutoUpdateYMax() const;
     void setAutoUpdateYMax(bool value);
@@ -114,6 +113,7 @@ public:
 
     QPair<int, QVector<double> > getCursorValue();
     QPair<int, QVector<double> > getRightCursorValue();
+    QPair<int, QVector<double> > getHeadValue();
 
     int getLegendFontSize() const;
     void setLegendFontSize(int value);
@@ -122,6 +122,21 @@ public:
     void setDefaultFontSize(int value);
 
     bool getDefaultHeadUpdate() const;
+
+    void setQueueDataFromList(QList<QVector<double> > &data , double xUnit);
+
+    QPair<int, QVector<double> > getShiftedCursorValue(int shift , bool forceShift);
+
+    bool getValidCursor() const;
+
+    bool getValidRightCursor() const;
+
+    bool getRightCursorForceBig() const;
+    void setRightCursorForceBig(bool value);
+    void clear();
+
+    double getStartRawX();
+    double getEndRawX();
 
 private:
     DataQueue::iterator pixPosToIterator( int x );
@@ -176,6 +191,8 @@ private:
 
     bool defaultHeadUpdate;
 
+    bool rightCursorForceBig;
+
     // raw * xScale = pixel
     // xGrid * xScale = pixel
 
@@ -192,6 +209,7 @@ private:
 
 signals:
     void moveCursor( QPair<int, QVector<double> > );
+    void moveRightCursor( QPair<int, QVector<double> > );
     void headChanged( int index );
     void headChanged( double rawX );
     void queueSizeChanged( int size );
@@ -205,6 +223,9 @@ public slots:
     void setHeadFromRawX(double x, const MoveMode mode , bool emitChanged);
     void setHeadFromRawXSmall( double x );
     void setDefaultHeadUpdate(bool value);
+    void setXScale(double value);
+    void setXScale(int value);
+    void moveHeadToHead(bool emitSignal , bool indexOnly);
 
     // QWidget interface
 protected:

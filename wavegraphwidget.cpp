@@ -52,6 +52,8 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     showYGridValue  = true;
 
     defaultHeadUpdate = true;
+
+    rightCursorForceBig = false;
 }
 
 QColor WaveGraphWidget::getBgColor() const
@@ -174,6 +176,30 @@ void WaveGraphWidget::setXScale(double value)
     xScale = value;
 
     update();
+}
+
+void WaveGraphWidget::setXScale(int value)
+{
+    setXScale((double)value);
+}
+
+void WaveGraphWidget::moveHeadToHead(bool emitSignal, bool indexOnly)
+{
+    // ヘッドイテレーターを最新のデータに移動する
+    if ( dataQueue.size() == 0 ) {
+        return;
+    }
+
+    head = dataQueue.end() - 1;
+    headIndex = dataQueue.size() - 1;
+
+    if ( emitSignal ) {
+        emit headChanged( headIndex );
+
+        if ( !indexOnly ) {
+            emit headChanged( (*head)[0] );
+        }
+    }
 }
 
 bool WaveGraphWidget::getAutoUpdateYMax() const
@@ -304,6 +330,7 @@ WaveGraphWidget::DataQueue::iterator WaveGraphWidget::pixPosToIterator(int x)
 
         if ( it == dataQueue.begin() ) {
             // Exit
+            ret = it;
             break;
         } else {
             // calc next pix x
@@ -330,6 +357,13 @@ void WaveGraphWidget::updateCursor(int x)
     cursor = pixPosToIterator( x );
 
     if ( cursor != dataQueue.end() ) {
+        // 追い越せない
+        if ( rightCursorForceBig && validRightCursor ) {
+            if ( (*rightCursor)[0] < (*cursor)[0] ) {
+                cursor = rightCursor;
+            }
+        }
+
         validCursor = true;
 
         emit moveCursor( QPair<int, QVector<double> >( getCurrentPixXFromRawX( (*cursor)[0] ), *cursor ) );
@@ -344,9 +378,16 @@ void WaveGraphWidget::updateRightCursor(int x)
     rightCursor = pixPosToIterator( x );
 
     if ( rightCursor != dataQueue.end() ) {
+        // 追い越せない
+        if ( rightCursorForceBig && validCursor ) {
+            if ( (*rightCursor)[0] < (*cursor)[0] ) {
+                rightCursor = cursor;
+            }
+        }
+
         validRightCursor = true;
 
-        emit moveCursor( QPair<int, QVector<double> >( getCurrentPixXFromRawX( (*rightCursor)[0] ), *rightCursor ) );
+        emit moveRightCursor( QPair<int, QVector<double> >( getCurrentPixXFromRawX( (*rightCursor)[0] ), *rightCursor ) );
     } else {
         validRightCursor = false;
     }
@@ -377,9 +418,118 @@ void WaveGraphWidget::emitHeadChanged(bool indexOnly)
         // emit headChanged( 0 );
     }
 }
+
+bool WaveGraphWidget::getRightCursorForceBig() const
+{
+    return rightCursorForceBig;
+}
+
+void WaveGraphWidget::setRightCursorForceBig(bool value)
+{
+    rightCursorForceBig = value;
+}
+
+void WaveGraphWidget::clear()
+{
+    clearQueue();
+    clearColorFilter();
+}
+
+double WaveGraphWidget::getStartRawX()
+{
+    if ( !dataQueue.size() ) return -1;
+    if ( !dataQueue.begin()->size() ) return -1;
+
+    return (*dataQueue.begin())[0];
+}
+
+double WaveGraphWidget::getEndRawX()
+{
+    if ( !dataQueue.size() ) return -1;
+    if ( !( dataQueue.end() - 1 )->size() ) return -1;
+
+    return ( *( dataQueue.end() - 1 ) )[0];
+}
+
+bool WaveGraphWidget::getValidRightCursor() const
+{
+    return validRightCursor;
+}
+
+bool WaveGraphWidget::getValidCursor() const
+{
+    return validCursor;
+}
 bool WaveGraphWidget::getDefaultHeadUpdate() const
 {
     return defaultHeadUpdate;
+}
+
+void WaveGraphWidget::setQueueDataFromList(QList<QVector<double> > &data, double xUnit)
+{
+    // キューのデータをクリアしてリストをセット
+    if ( data.size() == 0 ) {
+        return;
+    }
+
+    if ( data[0].size() < 2 ) {
+        return;
+    }
+
+    clearQueue();
+
+    // Read all data
+    setUpSize( data[0].size() - 1, data.size() );
+
+    for ( auto elem : data ) {
+        elem[0] = elem[0] * xUnit;
+
+        enqueueData( elem, false );
+    }
+
+    moveHeadToHead( true, true );
+}
+
+QPair<int, QVector<double> > WaveGraphWidget::getShiftedCursorValue(int shift, bool forceShift)
+{
+    // 現在のカーソル位置から、指定数ずらした位置の値を取得
+    if ( !validCursor ) {
+        return getCursorValue();
+    }
+
+    if ( shift == 0 ) {
+        return getCursorValue();
+    }
+
+    auto c = cursor;
+    bool over = false;
+
+    if ( shift > 0 ) {
+        for ( int i = 0; i < shift; i++ ) {
+            ++c;
+
+            if ( c == dataQueue.end() ) {
+                over = true;
+                --c;
+                break;
+            }
+        }
+    } else {
+        for ( int i = 0; i < qAbs( shift ); i++ ) {
+            if ( c == dataQueue.begin() ) {
+                over = true;
+                break;
+            }
+
+            --c;
+        }
+    }
+
+    if ( over && !forceShift ) {
+        return QPair<int, QVector<double> >( -1, QVector< double >() );
+    }
+
+    return QPair<int, QVector<double> >( getCurrentPixXFromRawX( (*c)[0] ), *c );
 }
 
 void WaveGraphWidget::setDefaultHeadUpdate(bool value)
@@ -433,7 +583,7 @@ QPair<int, QVector<double> > WaveGraphWidget::getCursorValue()
     if ( validCursor ) {
         return QPair<int, QVector<double> >( getCurrentPixXFromRawX( (*cursor)[0] ), *cursor );
     } else {
-        return QPair<int, QVector<double> >( 0, QVector< double >() );
+        return QPair<int, QVector<double> >( -1, QVector< double >() );
     }
 }
 
@@ -443,7 +593,17 @@ QPair<int, QVector<double> > WaveGraphWidget::getRightCursorValue()
     if ( validRightCursor ) {
         return QPair<int, QVector<double> >( getCurrentPixXFromRawX( (*rightCursor)[0] ), *rightCursor );
     } else {
-        return QPair<int, QVector<double> >( 0, QVector< double >() );
+        return QPair<int, QVector<double> >( -1, QVector< double >() );
+    }
+}
+
+QPair<int, QVector<double> > WaveGraphWidget::getHeadValue()
+{
+    // ヘッドイテレータの値取得
+    if ( dataQueue.count() > 0 ) {
+        return QPair<int, QVector<double> >( getCurrentPixXFromRawX( (*head)[0] ), *head );
+    } else {
+        return QPair<int, QVector<double> >( -1, QVector< double >() );
     }
 }
 
@@ -813,7 +973,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
 
             pen.setColor( zeroGridColor );
             p.setPen( pen );
-            p.drawText( QRectF( width() - fr.width() - 2, zeroY - fr.height(), fr.width(), fr.height() ), str );
+            p.drawText( QRectF( width() - fr.width() - 2, zeroY - fr.height(), fr.width() + 5, fr.height() + 5 ), str );
         }
     }
 
@@ -830,15 +990,15 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
         pen.setColor( QColor( 130, 130, 130 ) );
         p.setPen( pen );
 
-        p.drawText( QRectF( width() - frTop.width() - 2, 0, frTop.width(), frTop.height() ), strTop );
-        p.drawText( QRectF( width() - frBottom.width() - 2, height() - frBottom.height(), frBottom.width() + 5, frBottom.height() ), strBottom );
+        p.drawText( QRectF( width() - frTop.width() - 2, 0, frTop.width() + 5, frTop.height() + 5 ), strTop );
+        p.drawText( QRectF( width() - frBottom.width() - 2, height() - frBottom.height(), frBottom.width() + 5, frBottom.height() + 5 ), strBottom );
     }
 
     // Draw wave
     QList<QPolygon> polygonList;
 
     // Use AA
-    p.setRenderHint( QPainter::Antialiasing );
+    // p.setRenderHint( QPainter::Antialiasing );
 
     for ( int col = 0; col < columnCount; col++ ) {
         polygonList << QPolygon();
@@ -882,7 +1042,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
     }
 
     // Disable AA
-    p.setRenderHint( QPainter::Antialiasing, false );
+    // p.setRenderHint( QPainter::Antialiasing, false );
 
     // Draw color filter
     for ( auto const &filter : colorFilterList ) {
@@ -932,7 +1092,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
 
         pen.setColor( Qt::black );
         p.setPen( pen );
-        p.drawText( QRectF( legendOffsetX + legendLineLength + 5, legendOffsetY + col * fr.height(), fr.width(), fr.height() ), str );
+        p.drawText( QRectF( legendOffsetX + legendLineLength + 5, legendOffsetY + col * fr.height(), fr.width() + 5, fr.height() + 5 ), str );
     }
 
     // Draw cursor
@@ -964,18 +1124,20 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
 
                     pen.setColor( Qt::black );
                     p.setPen( pen );
-                    p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height(), fr.width(), fr.height() ), str );
+                    p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height(), fr.width() + 5, fr.height() + 5 ), str );
                 }
 
                 // Draw x value
                 QString str = xName + " : " + QString::number( (*cursor)[0], 'f' );
                 QRect fr = p.fontMetrics().boundingRect( str );
 
+                //qDebug() << str;
+
                 p.fillRect( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height(), fr.width(), fr.height(), QColor( 255, 255, 255, 200 ) );
 
                 pen.setColor( Qt::black );
                 p.setPen( pen );
-                p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height(), fr.width(), fr.height() ), str );
+                p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height(), fr.width() + 5, fr.height() + 5 ), str );
             }
         }
     }
@@ -984,7 +1146,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
     if ( showRightCursor && validRightCursor ) {
         int cursorX = width() - ( (*head)[0] - (*rightCursor)[0] ) * xScale;
 
-        if ( cursorX >= 0 && cursorX < width() ) {
+        if ( cursorX >= 0 && cursorX <= width() ) {
             pen.setColor( cursorColor );
             pen.setWidth( cursorWidth );
             p.setPen( pen );

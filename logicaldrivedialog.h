@@ -24,7 +24,7 @@ public:
     QString getSelectedLogicalDriveName( void );
 
 private slots:
-    void on_okButton_clicked();
+    void okClicked();
 
 private:
     Ui::LogicalDriveDialog *ui;
