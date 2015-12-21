@@ -99,8 +99,9 @@ QString LogicalDriveDialog::getSelectedLogicalDriveName()
 void LogicalDriveDialog::okClicked()
 {
     // OK
-    if ( ui->driveComboBox->currentIndex() < 0 ) {
-        reject();
+    if ( ui->driveComboBox->currentIndex() < 0 || getSelectedLogicalDriveName() == "" ) {
+        // ドライブが選択されてない
+        QMessageBox::information( this, tr( "Information" ), tr( "Please select a drive" ) );
 
         return;
     }
