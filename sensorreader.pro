@@ -36,7 +36,8 @@ SOURCES += main.cpp\
     fsfileselectdialog.cpp \
     csvwritefileworker.cpp \
     tabledatareader.cpp \
-    dataselectdialog.cpp
+    dataselectdialog.cpp \
+    analyzefiledialog.cpp
 
 HEADERS  += widget.h \
     wavegraphwidget.h \
@@ -59,14 +60,16 @@ HEADERS  += widget.h \
     fsfileselectdialog.h \
     csvwritefileworker.h \
     tabledatareader.h \
-    dataselectdialog.h
+    dataselectdialog.h \
+    analyzefiledialog.h
 
 FORMS    += widget.ui \
     connectdialog.ui \
     progressdialog.ui \
     logicaldrivedialog.ui \
     fsfileselectdialog.ui \
-    dataselectdialog.ui
+    dataselectdialog.ui \
+    analyzefiledialog.ui
 
 win32 {
     RC_FILE = win.rc

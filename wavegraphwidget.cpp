@@ -9,6 +9,8 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     setStrColor( Qt::black );
     setCursorColor( Qt::black );
     setRightCursorColor( Qt::black );
+    setFrameColor( Qt::black );
+    setYValueColor( Qt::darkGray );
 
     // Setup default graph status
     setAutoUpdateYMax( false );
@@ -54,6 +56,10 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     defaultHeadUpdate = true;
 
     rightCursorForceBig = false;
+
+    forceRequestedRawX = false;
+
+    requestRawX = 0;
 }
 
 QColor WaveGraphWidget::getBgColor() const
@@ -122,17 +128,12 @@ void WaveGraphWidget::enqueueData( const QVector<double> &data, bool updateHead 
 
     // update iterator
     if ( updateHead ) {
-        head = dataQueue.end();
-        head--;
-
-        headIndex = dataQueue.size() - 1;
+        setHead( dataQueue.end() - 1, dataQueue.size() - 1 );
 
         headmove = true;
     } else if ( dataQueue.size() == 1 ) {
         // head is always valid iterator if dataQueue size is larger than 0
-        head = dataQueue.begin();
-
-        headIndex = 0;
+        setHead( dataQueue.begin(), 0 );
 
         headmove = true;
     }
@@ -147,11 +148,10 @@ void WaveGraphWidget::enqueueData( const QVector<double> &data, bool updateHead 
         dataQueue.removeFirst();
 
         // move head
-        headIndex--;
+        setHead( head, headIndex - 1 );
 
         if ( headIndex < 0 ) {
-            headIndex = 0;
-            head = dataQueue.begin();
+            setHead( dataQueue.begin(), 0 );
         }
 
         headmove = true;
@@ -190,8 +190,7 @@ void WaveGraphWidget::moveHeadToHead(bool emitSignal, bool indexOnly)
         return;
     }
 
-    head = dataQueue.end() - 1;
-    headIndex = dataQueue.size() - 1;
+    setHead( dataQueue.end() - 1, dataQueue.size() - 1 );
 
     if ( emitSignal ) {
         emit headChanged( headIndex );
@@ -316,7 +315,14 @@ WaveGraphWidget::DataQueue::iterator WaveGraphWidget::pixPosToIterator(int x)
         return ret;
     }
 
-    ix = 0;
+    // 強制指定されたxを基準とするためのオフセット作成
+    double offX = 0;
+
+    if ( forceRequestedRawX && requestRawX != (*head)[0] ) {
+        offX = ( (*head)[0] - requestRawX ) * xScale;
+    }
+
+    ix = -offX;
 
     for ( auto it = head; true; it-- ) {
         int dataX = width() - ix;
@@ -417,6 +423,61 @@ void WaveGraphWidget::emitHeadChanged(bool indexOnly)
         // emit headChanged( 0 );
         // emit headChanged( 0 );
     }
+}
+
+void WaveGraphWidget::setHead(DataQueue::iterator head, int headIndex, bool overwriteRequest)
+{
+    this->head = head;
+    this->headIndex = headIndex;
+
+    if ( overwriteRequest && dataQueue.size() > 0 && head != dataQueue.end() && head->size() > 0 ) {
+        requestRawX = (*head)[0];
+    }
+}
+
+void WaveGraphWidget::setHead(int headIndex)
+{
+    this->headIndex = headIndex;
+}
+
+QColor WaveGraphWidget::getYValueColor() const
+{
+    return yValueColor;
+}
+
+void WaveGraphWidget::setYValueColor(const QColor &value)
+{
+    yValueColor = value;
+}
+
+QColor WaveGraphWidget::getFrameColor() const
+{
+    return frameColor;
+}
+
+void WaveGraphWidget::setFrameColor(const QColor &value)
+{
+    frameColor = value;
+}
+
+void WaveGraphWidget::setRequestRawX(double value)
+{
+    requestRawX = value;
+}
+
+double WaveGraphWidget::getRequestRawX() const
+{
+    return requestRawX;
+}
+
+bool WaveGraphWidget::getForceRequestedRawX() const
+{
+    return forceRequestedRawX;
+}
+
+void WaveGraphWidget::setForceRequestedRawX(bool value)
+{
+    forceRequestedRawX = value;
 }
 
 bool WaveGraphWidget::getRightCursorForceBig() const
@@ -647,7 +708,7 @@ void WaveGraphWidget::setHeadIndex(int value)
 {
     // Set head index and iterator
     if ( dataQueue.size() == 0 ) {
-        headIndex = 0;
+        setHead( dataQueue.end(), 0 );
 
         return;
     }
@@ -665,21 +726,27 @@ void WaveGraphWidget::setHeadIndex(int value)
     int diff = value - headIndex;
 
     // move iterator
-    head += diff;
-
-    headIndex = value;
+    setHead( head + diff, value );
 
     emitHeadChanged();
 
     update();
 }
 
-void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitChanged)
+void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitChanged, bool owReq)
 {
     // Move head to real x nearest iterator
     if ( dataQueue.size() == 0 ) return;
 
     double headX = (*head)[0];
+
+    // 必ず再描画は行う
+    update();
+
+    // 要求するxを保存
+    if ( !owReq ) {
+        setRequestRawX( x );
+    }
 
     if ( headX == x ) {
         return;
@@ -700,8 +767,7 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitCh
             // Nearet values are found
             if ( newHeadX == x ) {
                 // Update head
-                head = newHead;
-                headIndex += diff;
+                setHead( newHead, headIndex + diff, owReq );
 
                 updated = true;
 
@@ -710,18 +776,14 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitCh
                 // Check nearest and update head
                 if ( mode == Nearest ) {
                     if ( qAbs( newHeadX - x ) <= qAbs( beforeX - x ) ) {
-                        head = newHead;
-                        headIndex += diff;
+                        setHead( newHead, headIndex + diff, owReq );
                     } else {
-                        head = beforeHead;
-                        headIndex += ( diff - 1 );
+                        setHead( beforeHead, headIndex + ( diff - 1 ), owReq );
                     }
                 } else if ( mode == SmallNearest ) {
-                    head = beforeHead;
-                    headIndex += ( diff - 1 );
+                    setHead( beforeHead, headIndex + ( diff - 1 ), owReq );
                 } else if ( mode == LargeNearest ) {
-                    head = newHead;
-                    headIndex += diff;
+                    setHead( newHead, headIndex + diff, owReq );
                 }
 
                 updated = true;
@@ -735,8 +797,7 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitCh
 
         // reach the end of loop
         if ( newHead == dataQueue.end() ) {
-            head = dataQueue.end() - 1;
-            headIndex = dataQueue.count() - 1;
+            setHead( dataQueue.end() - 1, dataQueue.count() - 1, owReq );
 
             updated = true;
         }
@@ -747,8 +808,7 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitCh
             // Nearet values are found
             if ( newHeadX == x ) {
                 // Update head
-                head = newHead;
-                headIndex -= diff;
+                setHead( newHead, headIndex - diff, owReq );
 
                 updated = true;
 
@@ -757,18 +817,14 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitCh
                 // Check nearest and update head
                 if ( mode == Nearest ) {
                     if ( qAbs( newHeadX - x ) <= qAbs( beforeX - x ) ) {
-                        head = newHead;
-                        headIndex -= diff;
+                        setHead( newHead, headIndex - diff, owReq );
                     } else {
-                        head = beforeHead;
-                        headIndex -= ( diff - 1 );
+                        setHead( beforeHead, headIndex - ( diff - 1 ), owReq );
                     }
                 } else if ( mode == LargeNearest ) {
-                    head = beforeHead;
-                    headIndex -= ( diff - 1 );
+                    setHead( beforeHead, headIndex - ( diff - 1 ), owReq );
                 } else if ( mode == SmallNearest ) {
-                    head = newHead;
-                    headIndex -= diff;
+                    setHead( newHead, headIndex - diff, owReq );
                 }
 
                 updated = true;
@@ -787,16 +843,13 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitCh
 
         // reach the end of loop
         if ( newHead == dataQueue.begin() && updated == false ) {
-            head = dataQueue.begin();
-            headIndex = 0;
+            setHead( dataQueue.begin(), 0, owReq );
 
             updated = true;
         }
     }
 
     if ( updated && emitChanged ) {
-        update();
-
         emitHeadChanged( true );
     }
 }
@@ -804,6 +857,11 @@ void WaveGraphWidget::setHeadFromRawX(double x, const MoveMode mode, bool emitCh
 void WaveGraphWidget::setHeadFromRawXSmall(double x)
 {
     setHeadFromRawX( x, SmallNearest, true );
+}
+
+void WaveGraphWidget::setHeadFromRawXSmallForce(double x)
+{
+    setHeadFromRawX( x, SmallNearest, true, false );
 }
 
 int WaveGraphWidget::getQueueSize()
@@ -883,6 +941,10 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
     // Clear bg
     p.fillRect( rect(), bgColor );
 
+    // 外枠を描く
+    p.setPen( frameColor );
+    p.drawRect( 0, 0, width() - 1, height() - 1 );
+
     // Draw x grid
     p.setPen( gridColor );
 
@@ -900,6 +962,15 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
     QList<double> minRawY, maxRawY;
     double localMinY, localMaxY;
     double x = 0;
+
+    // 強制指定されたxを基準とするためのオフセット作成
+    double offX = 0;
+
+    if ( forceRequestedRawX && requestRawX != (*head)[0] ) {
+        offX = ( (*head)[0] - requestRawX ) * xScale;
+    }
+
+    x -= offX;
 
     for ( int i = 0; i < (*head).size(); i++ ) {
         minRawY << (*head)[i];
@@ -987,10 +1058,10 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
         QRect frTop = p.fontMetrics().boundingRect( strTop );
         QRect frBottom = p.fontMetrics().boundingRect( strBottom );
 
-        pen.setColor( QColor( 130, 130, 130 ) );
+        pen.setColor( yValueColor );
         p.setPen( pen );
 
-        p.drawText( QRectF( width() - frTop.width() - 2, 0, frTop.width() + 5, frTop.height() + 5 ), strTop );
+        p.drawText( QRectF( width() - frTop.width() - 2, 1, frTop.width() + 5, frTop.height() + 5 ), strTop );
         p.drawText( QRectF( width() - frBottom.width() - 2, height() - frBottom.height(), frBottom.width() + 5, frBottom.height() + 5 ), strBottom );
     }
 
@@ -1097,7 +1168,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
 
     // Draw cursor
     if ( showCursor && ( validCursor ) ) {
-        int cursorX = width() - ( (*head)[0] - (*cursor)[0] ) * xScale;
+        int cursorX = width() - ( (*head)[0] - (*cursor)[0] ) * xScale + offX;
 
         if ( cursorX >= 0 && cursorX < width() ) {
             pen.setColor( cursorColor );
@@ -1115,7 +1186,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
                     QString str = names[col] + " : " + QString::number( (*cursor)[col + 1], 'f' );
                     QRect fr = p.fontMetrics().boundingRect( str );
 
-                    p.fillRect( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height(), fr.width(), fr.height(), QColor( 255, 255, 255, 200 ) );
+                    p.fillRect( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height() - 1, fr.width(), fr.height(), QColor( 255, 255, 255, 200 ) );
 
                     pen.setColor( colors[col] );
                     pen.setWidth( 2 );
@@ -1124,7 +1195,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
 
                     pen.setColor( Qt::black );
                     p.setPen( pen );
-                    p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height(), fr.width() + 5, fr.height() + 5 ), str );
+                    p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount - col ) * fr.height() - 1, fr.width() + 5, fr.height() + 5 ), str );
                 }
 
                 // Draw x value
@@ -1133,11 +1204,11 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
 
                 //qDebug() << str;
 
-                p.fillRect( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height(), fr.width(), fr.height(), QColor( 255, 255, 255, 200 ) );
+                p.fillRect( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height() - 1, fr.width(), fr.height(), QColor( 255, 255, 255, 200 ) );
 
                 pen.setColor( Qt::black );
                 p.setPen( pen );
-                p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height(), fr.width() + 5, fr.height() + 5 ), str );
+                p.drawText( QRectF( cursorX - fr.width() - 10, height() - ( columnCount + 1 ) * fr.height() - 1, fr.width() + 5, fr.height() + 5 ), str );
             }
         }
     }

@@ -12,6 +12,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QList>
 #include <QVector>
 #include <QVector3D>
@@ -28,6 +29,7 @@
 #include "micomfs.h"
 #include "tabledatareader.h"
 #include "dataselectdialog.h"
+#include "analyzefiledialog.h"
 
 namespace Ui {
 class Widget;
@@ -40,6 +42,9 @@ class Widget : public QWidget
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
+
+    int getGraphQueueSize() const;
+    void setGraphQueueSize(int value);
 
 private slots:
     void on_quitButton_clicked();
@@ -62,13 +67,19 @@ private slots:
     void on_readCardButton_clicked();
 
     void setXScale( int scale );
+    void setXGrid( int width );
     void headUpdated( double rawX );
     void setDefaultUpdateHead( bool val );
+
+    void on_analyzeFileButton_clicked();
 
 private:
     QString saveLogFile( QString dirName );
 
     void createWaveList();
+    void setupDefaultWaveParams();
+
+    void showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName , double rawXUnit, double analyzedXUnit);
 
     // For analysis
     bool analyzeLog(QString dirName, QString accFileName, QString gyroFileName, QString analyzedFileName, double xUnit);
@@ -86,6 +97,8 @@ private:
     QStatusBar *bar;
 
     QList<WaveGraphWidget *>waveList;
+
+    int graphQueueSize;
 
     // QWidget interface
 protected:

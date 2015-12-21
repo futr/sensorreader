@@ -7,6 +7,8 @@ DataSelectDialog::DataSelectDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    setWindowFlags( windowFlags() | Qt::WindowMaximizeButtonHint | Qt::WindowSystemMenuHint );
+
     zeroCount = ui->zeroCountSpinBox->value();
     G = ui->gEdit->text().toDouble();
 

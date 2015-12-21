@@ -29,131 +29,80 @@ Widget::Widget(QWidget *parent) :
     enableSerialButtons( false );
 
     // Setup graph
+    graphQueueSize = 10000;
+
     createWaveList();
+    setupDefaultWaveParams();
 
     ui->acc->setLabel( tr( "Acceleration" ) );
-    ui->acc->wave->setUpSize( 3, 10000 );
-    ui->acc->wave->setXScale( 20 );
+    ui->acc->wave->setUpSize( 3, graphQueueSize );
     ui->acc->wave->setAutoUpdateYMax( true );
     ui->acc->wave->setAutoUpdateYMin( true );
     ui->acc->wave->setAutoZeroCenter( true );
-    ui->acc->wave->setXGrid( 5 );
-    ui->acc->wave->setLegendFontSize( 12 );
-    ui->acc->wave->setDefaultFontSize( 12 );
-    ui->acc->wave->setShowCursor( true );
-    ui->acc->wave->setXName( "time[sec]" );
     ui->acc->wave->setNames( QStringList() << "x[G]" << "y[G]" << "z[G]" );
     ui->acc->wave->setColors( QList<QColor>() << Qt::red << Qt::darkGreen << Qt::blue );
 
     ui->gyro->setLabel( tr( "Angular Velocity" ) );
-    ui->gyro->wave->setUpSize( 3, 10000 );
-    ui->gyro->wave->setXScale( 20 );
+    ui->gyro->wave->setUpSize( 3, graphQueueSize );
     ui->gyro->wave->setAutoUpdateYMax( true );
     ui->gyro->wave->setAutoUpdateYMin( true );
     ui->gyro->wave->setAutoZeroCenter( true );
-    ui->gyro->wave->setXGrid( 5 );
-    ui->gyro->wave->setLegendFontSize( 12 );
-    ui->gyro->wave->setDefaultFontSize( 12 );
-    ui->gyro->wave->setShowCursor( true );
-    ui->gyro->wave->setXName( "time[sec]" );
     ui->gyro->wave->setNames( QStringList() << "x[dps]" << "y[dps]" << "z[dps]" );
     ui->gyro->wave->setColors( QList<QColor>() << Qt::red << Qt::darkGreen << Qt::blue );
 
     ui->mag->setLabel( tr( "Magnetic field" ) );
-    ui->mag->wave->setUpSize( 3, 10000 );
-    ui->mag->wave->setXScale( 20 );
+    ui->mag->wave->setUpSize( 3, graphQueueSize );
     ui->mag->wave->setAutoUpdateYMax( true );
     ui->mag->wave->setAutoUpdateYMin( true );
     ui->mag->wave->setAutoZeroCenter( true );
-    ui->mag->wave->setXGrid( 5 );
-    ui->mag->wave->setLegendFontSize( 12 );
-    ui->mag->wave->setDefaultFontSize( 12 );
-    ui->mag->wave->setShowCursor( true );
-    ui->mag->wave->setXName( "time[sec]" );
     ui->mag->wave->setNames( QStringList() << "x[µT]" << "y[µT]" << "z[µT]" );
     ui->mag->wave->setColors( QList<QColor>() << Qt::red << Qt::darkGreen << Qt::blue );
 
     ui->temp->setLabel( tr( "Temperature" ) );
-    ui->temp->wave->setUpSize( 1, 10000 );
-    ui->temp->wave->setXScale( 20 );
+    ui->temp->wave->setUpSize( 1, graphQueueSize );
     ui->temp->wave->setAutoUpdateYMax( true );
     ui->temp->wave->setAutoUpdateYMin( true );
-    ui->temp->wave->setXGrid( 5 );
-    ui->temp->wave->setLegendFontSize( 12 );
-    ui->temp->wave->setDefaultFontSize( 12 );
-    ui->temp->wave->setShowCursor( true );
-    ui->temp->wave->setXName( "time[sec]" );
     ui->temp->wave->setNames( QStringList() << "x[℃]" );
     ui->temp->wave->setColors( QList<QColor>() << Qt::blue );
 
     ui->pressure->setLabel( tr( "Pressure" ) );
-    ui->pressure->wave->setUpSize( 1, 10000 );
-    ui->pressure->wave->setXScale( 20 );
+    ui->pressure->wave->setUpSize( 1, graphQueueSize );
     ui->pressure->wave->setAutoUpdateYMax( true );
     ui->pressure->wave->setAutoUpdateYMin( true );
-    ui->pressure->wave->setXGrid( 5 );
-    ui->pressure->wave->setLegendFontSize( 12 );
-    ui->pressure->wave->setDefaultFontSize( 12 );
-    ui->pressure->wave->setShowCursor( true );
-    ui->pressure->wave->setXName( "time[sec]" );
     ui->pressure->wave->setNames( QStringList() << "x[hPa]" );
     ui->pressure->wave->setColors( QList<QColor>() << Qt::blue );
 
     ui->pos->setLabel( tr( "Position" ) );
-    ui->pos->wave->setUpSize( 3, 10000 );
-    ui->pos->wave->setXScale( 20 );
+    ui->pos->wave->setUpSize( 3, 100 );
     ui->pos->wave->setAutoUpdateYMax( true );
     ui->pos->wave->setAutoUpdateYMin( true );
-    ui->pos->wave->setAutoZeroCenter( true );
-    ui->pos->wave->setXGrid( 5 );
-    ui->pos->wave->setLegendFontSize( 12 );
-    ui->pos->wave->setDefaultFontSize( 12 );
-    ui->pos->wave->setShowCursor( true );
-    ui->pos->wave->setXName( "time[sec]" );
+    ui->pos->wave->setAutoZeroCenter( false );
     ui->pos->wave->setNames( QStringList() << "x[m]" << "y[m]" << "z[m]" );
     ui->pos->wave->setColors( QList<QColor>() << Qt::red << Qt::darkGreen << Qt::blue );
 
     ui->posLen->setLabel( tr( "Position ( Length from start position )" ) );
-    ui->posLen->wave->setUpSize( 1, 10000 );
-    ui->posLen->wave->setXScale( 20 );
+    ui->posLen->wave->setUpSize( 1, graphQueueSize );
     ui->posLen->wave->setAutoUpdateYMax( true );
     ui->posLen->wave->setAutoUpdateYMin( false );
-    ui->posLen->wave->setAutoZeroCenter( true );
+    ui->posLen->wave->setAutoZeroCenter( false );
     ui->posLen->wave->setYMin( 0 );
-    ui->posLen->wave->setXGrid( 5 );
-    ui->posLen->wave->setLegendFontSize( 12 );
-    ui->posLen->wave->setDefaultFontSize( 12 );
-    ui->posLen->wave->setShowCursor( true );
-    ui->posLen->wave->setXName( "time[sec]" );
     ui->posLen->wave->setNames( QStringList() << "l[m]" );
     ui->posLen->wave->setColors( QList<QColor>() << Qt::blue );
 
     ui->velocity->setLabel( tr( "Velocity" ) );
-    ui->velocity->wave->setUpSize( 3, 10000 );
-    ui->velocity->wave->setXScale( 20 );
+    ui->velocity->wave->setUpSize( 3, graphQueueSize );
     ui->velocity->wave->setAutoUpdateYMax( true );
     ui->velocity->wave->setAutoUpdateYMin( true );
-    ui->velocity->wave->setAutoZeroCenter( true );
-    ui->velocity->wave->setXGrid( 5 );
-    ui->velocity->wave->setLegendFontSize( 12 );
-    ui->velocity->wave->setDefaultFontSize( 12 );
-    ui->velocity->wave->setShowCursor( true );
-    ui->velocity->wave->setXName( "time[sec]" );
+    ui->velocity->wave->setAutoZeroCenter( false );
     ui->velocity->wave->setNames( QStringList() << "Vx[m/s]" << "Vy[m/s]" << "Vz[m/s]" );
     ui->velocity->wave->setColors( QList<QColor>() << Qt::red << Qt::darkGreen << Qt::blue );
 
     ui->vLen->setLabel( tr( "Velocity ( Length )" ) );
-    ui->vLen->wave->setUpSize( 1, 10000 );
-    ui->vLen->wave->setXScale( 20 );
+    ui->vLen->wave->setUpSize( 1, graphQueueSize );
     ui->vLen->wave->setAutoUpdateYMax( true );
     ui->vLen->wave->setAutoUpdateYMin( false );
-    ui->vLen->wave->setAutoZeroCenter( true );
+    ui->vLen->wave->setAutoZeroCenter( false );
     ui->vLen->wave->setYMin( 0 );
-    ui->vLen->wave->setXGrid( 5 );
-    ui->vLen->wave->setLegendFontSize( 12 );
-    ui->vLen->wave->setDefaultFontSize( 12 );
-    ui->vLen->wave->setShowCursor( true );
-    ui->vLen->wave->setXName( "time[sec]" );
     ui->vLen->wave->setNames( QStringList() << "v[m/s]" );
     ui->vLen->wave->setColors( QList<QColor>() << Qt::blue );
 
@@ -162,6 +111,7 @@ Widget::Widget(QWidget *parent) :
 
     // Connect
     connect( ui->xScaleSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setXScale(int)) );
+    connect( ui->timeGridSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setXGrid(int)) );
     connect( ui->updateHeadCheckBox, SIGNAL(toggled(bool)), this, SLOT(setDefaultUpdateHead(bool)) );
 
     for ( auto &elem : waveList ) {
@@ -463,97 +413,7 @@ void Widget::on_readCardButton_clicked()
     }
 
     ////////// 保存したデータを表示する
-    // グラフクリア
-    clearGraph();
-
-    // CSVみんな開く
-    // ログ解析して位置と速度に
-    TableDataReader accReader;
-    TableDataReader gyroReader;
-    TableDataReader magReader;
-    TableDataReader pressureReader;
-    TableDataReader tempReader;
-    TableDataReader analyzedReader;
-
-    // 開く
-    if ( !accReader.readFile( accFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a acceleration log file" ) );
-        return;
-    }
-
-    if ( !gyroReader.readFile( gyroFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a angular velocity log file" ) );
-        return;
-    }
-
-    if ( !magReader.readFile( magFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Magnetic field log file" ) );
-        return;
-    }
-
-    if ( !pressureReader.readFile( pressureFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a pressure log file" ) );
-        return;
-    }
-
-    if ( !tempReader.readFile( tempFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a temperature log file" ) );
-        return;
-    }
-
-    if ( !analyzedReader.readFile( analyzedFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Analyzed log file" ) );
-        return;
-    }
-
-    // 解析済みログファイルを要素ごとのリストに分ける
-    QList<QVector<double > > posList;
-    QList<QVector<double > > vList;
-    QList<QVector<double > > posLenList;
-    QList<QVector<double > > vLenList;
-
-    // ハードコーディングだからおかしいかもしんない
-    double startTime = ( *analyzedReader.tableData.begin() )[0];
-    double endTime = ( *( analyzedReader.tableData.end() - 1 ) )[0];
-
-    for ( auto it = analyzedReader.tableData.begin(); it != analyzedReader.tableData.end(); ++it ) {
-        // 振り分け
-        double time = (*it)[0];
-        QVector<double> pos, posLen;
-        QVector<double> v, vLen;
-
-        pos << time << it->mid( 1, 3 );
-        posLen << time << it->mid( 4, 1 );
-        v << time << it->mid( 5, 3 );
-        vLen << time << it->mid( 8, 1 );
-
-        posList << pos;
-        posLenList << posLen;
-        vList << v;
-        vLenList << vLen;
-    }
-
-    // 表示
-    ui->acc->wave->setQueueDataFromList( accReader.tableData, param.xUnit );
-    ui->gyro->wave->setQueueDataFromList( gyroReader.tableData, param.xUnit );
-    ui->mag->wave->setQueueDataFromList( magReader.tableData, param.xUnit );
-    ui->pressure->wave->setQueueDataFromList( pressureReader.tableData, param.xUnit );
-    ui->temp->wave->setQueueDataFromList( tempReader.tableData, param.xUnit );
-
-    ui->velocity->wave->setQueueDataFromList( vList, 1 );
-    ui->vLen->wave->setQueueDataFromList( vLenList, 1 );
-    ui->pos->wave->setQueueDataFromList( posList, 1 );
-    ui->posLen->wave->setQueueDataFromList( posLenList, 1 );
-
-    // 色フィルターで有効範囲を表示
-    ui->acc->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 20 ) );
-    ui->gyro->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 20 ) );
-    ui->mag->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 20 ) );
-    ui->pressure->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 20 ) );
-    ui->temp->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 20 ) );
-
-    // 処理結果表示イネーブル
-    enableAnalyzedGraph( true );
+    showAnalyzedLogFiles( accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit, 1 );
 
     // すべての処理完了
     QMessageBox::information( this, tr( "Complete" ), tr( "All operation is successfully completed." ) );
@@ -566,6 +426,14 @@ void Widget::setXScale( int scale )
     }
 }
 
+void Widget::setXGrid(int width)
+{
+    for ( auto &elem : waveList ) {
+        elem->setXGrid( width );
+        elem->update();
+    }
+}
+
 void Widget::headUpdated(double rawX)
 {
     // wave widget invoke this when head is changed
@@ -574,7 +442,7 @@ void Widget::headUpdated(double rawX)
     }
 
     for ( auto &elem : waveList ) {
-        elem->setHeadFromRawXSmall( rawX );
+        elem->setHeadFromRawXSmallForce( rawX );
     }
 }
 
@@ -793,6 +661,117 @@ void Widget::createWaveList()
     waveList << ui->vLen->wave;
     waveList << ui->pos->wave;
     waveList << ui->posLen->wave;
+}
+
+void Widget::setupDefaultWaveParams()
+{
+    for ( auto &elem : waveList ) {
+        elem->setXScale( ui->xScaleSpinBox->value() );
+        elem->setXGrid( ui->timeGridSpinBox->value() );
+        elem->setLegendFontSize( 12 );
+        elem->setDefaultFontSize( 12 );
+        elem->setShowCursor( true );
+        elem->setXName( "time[sec]" );
+        elem->setForceRequestedRawX( true );
+    }
+}
+
+void Widget::showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double rawXUnit, double analyzedXUnit )
+{
+    // グラフクリア
+    clearGraph();
+
+    // CSVみんな開く
+    // ログ解析して位置と速度に
+    TableDataReader accReader;
+    TableDataReader gyroReader;
+    TableDataReader magReader;
+    TableDataReader pressureReader;
+    TableDataReader tempReader;
+    TableDataReader analyzedReader;
+
+    // 開く
+    if ( accFileName != "" && !accReader.readFile( accFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a acceleration log file" ) );
+        return;
+    }
+
+    if ( gyroFileName != "" && !gyroReader.readFile( gyroFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a angular velocity log file" ) );
+        return;
+    }
+
+    if ( magFileName != "" && !magReader.readFile( magFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Magnetic field log file" ) );
+        return;
+    }
+
+    if ( pressureFileName != "" && !pressureReader.readFile( pressureFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a pressure log file" ) );
+        return;
+    }
+
+    if ( tempFileName != "" && !tempReader.readFile( tempFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a temperature log file" ) );
+        return;
+    }
+
+    if ( analyzedFileName != "" && !analyzedReader.readFile( analyzedFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Analyzed log file" ) );
+        return;
+    }
+
+    // 解析済みログファイルを要素ごとのリストに分ける
+    QList<QVector<double > > posList;
+    QList<QVector<double > > vList;
+    QList<QVector<double > > posLenList;
+    QList<QVector<double > > vLenList;
+
+    // ハードコーディングだからおかしいかもしんない
+    double startTime = ( *analyzedReader.tableData.begin() )[0];
+    double endTime = ( *( analyzedReader.tableData.end() - 1 ) )[0];
+
+    for ( auto it = analyzedReader.tableData.begin(); it != analyzedReader.tableData.end(); ++it ) {
+        // 振り分け
+        double time = (*it)[0];
+        QVector<double> pos, posLen;
+        QVector<double> v, vLen;
+
+        pos << time << it->mid( 1, 3 );
+        posLen << time << it->mid( 4, 1 );
+        v << time << it->mid( 5, 3 );
+        vLen << time << it->mid( 8, 1 );
+
+        posList << pos;
+        posLenList << posLen;
+        vList << v;
+        vLenList << vLen;
+    }
+
+    // 表示
+    ui->acc->wave->setQueueDataFromList( accReader.tableData, rawXUnit );
+    ui->gyro->wave->setQueueDataFromList( gyroReader.tableData, rawXUnit );
+    ui->mag->wave->setQueueDataFromList( magReader.tableData, rawXUnit );
+    ui->pressure->wave->setQueueDataFromList( pressureReader.tableData, rawXUnit );
+    ui->temp->wave->setQueueDataFromList( tempReader.tableData, rawXUnit );
+
+    ui->velocity->wave->setQueueDataFromList( vList, analyzedXUnit );
+    ui->vLen->wave->setQueueDataFromList( vLenList, analyzedXUnit );
+    ui->pos->wave->setQueueDataFromList( posList, analyzedXUnit );
+    ui->posLen->wave->setQueueDataFromList( posLenList, analyzedXUnit );
+
+    // 色フィルターで有効範囲を表示
+    ui->acc->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 25 ) );
+    ui->gyro->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 25 ) );
+    ui->mag->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 25 ) );
+    ui->pressure->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 25 ) );
+    ui->temp->wave->addColorFilter( startTime, endTime, QColor( 0, 0, 255, 25 ) );
+
+    // 処理結果表示イネーブル
+    enableAnalyzedGraph( true );
+
+    // ヘッド位置が合うようにする
+    ui->velocity->wave->moveHeadToHead( true, false );
 }
 
 bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileName, QString analyzedFileName, double xUnit)
@@ -1357,3 +1336,43 @@ double Widget::calcArea(QVector2D p1, QVector2D p2)
     return ( p2.y() - p1.y() ) * ( p2.x() - p1.x() ) / 2 + ( p1.y() * ( p2.x() - p1.x() ) );
 }
 
+int Widget::getGraphQueueSize() const
+{
+    return graphQueueSize;
+}
+
+void Widget::setGraphQueueSize(int value)
+{
+    graphQueueSize = value;
+}
+
+
+void Widget::on_analyzeFileButton_clicked()
+{
+    // ログファイルから位置と速度を解析
+
+    // センサーと接続されてたら実行できない
+    if ( sensor->isOpen() ) {
+        QMessageBox::information( this, tr( "Information" ), tr( "Can't open card during connected to sensor" ) );
+
+        return;
+    }
+
+    SensorParameters params;
+    SensorParameters::Parameter param = params.getParameter( ui->sensorNameBox->currentText().toStdString() );
+    AnalyzeFileDialog *dialog = new AnalyzeFileDialog( this );
+    dialog->deleteLater();
+
+    if ( dialog->exec() != QDialog::Accepted ) {
+        return;
+    }
+
+    QString dirName = QFileInfo( dialog->getAccFileName() ).canonicalPath();
+    QString analyzedFileName = dirName + "/" + tr( "output.csv" );
+
+    if( !analyzeLog( dirName, dialog->getAccFileName(), dialog->getGyroFileName(), analyzedFileName, param.xUnit ) ) {
+        return;
+    }
+
+    showAnalyzedLogFiles( dialog->getAccFileName(), dialog->getGyroFileName(), "", "", "", analyzedFileName, param.xUnit, 1 );
+}
