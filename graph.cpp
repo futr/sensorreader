@@ -31,3 +31,9 @@ void Graph::setLabel(const QString &text)
     label->setText( text );
 }
 
+void Graph::setPrintMode(bool enable)
+{
+    // 印刷用の表示になる
+    bar->setVisible( !enable );
+}
+

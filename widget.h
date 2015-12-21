@@ -20,6 +20,8 @@
 #include <QMatrix4x4>
 #include <QVector2D>
 #include <QtMath>
+#include <QtPrintSupport/QPrinter>
+#include <QtPrintSupport/QPrintDialog>
 #include "logicaldrivedialog.h"
 #include "progressdialog.h"
 #include "fsfileselectdialog.h"
@@ -61,6 +63,7 @@ private slots:
 
     void enableSerialButtons( bool enable = true );
     void clearGraph();
+    void setPrintMode( bool enable );
 
     void enableAnalyzedGraph( bool enable = true );
 
@@ -73,6 +76,9 @@ private slots:
 
     void on_analyzeFileButton_clicked();
 
+    void on_printButton_clicked();
+
+
 private:
     QString saveLogFile( QString dirName );
 
@@ -82,7 +88,7 @@ private:
     void showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName , double rawXUnit, double analyzedXUnit);
 
     // For analysis
-    bool analyzeLog(QString dirName, QString accFileName, QString gyroFileName, QString analyzedFileName, double xUnit);
+    bool analyzeLog(QString dirName, QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double xUnit);
 
     QVector3D rowToVec3D( QVector< double > row );
     QVector<double> getColumnVector( const QList<QVector3D> &list, int column, int startRow, int count );
@@ -97,6 +103,7 @@ private:
     QStatusBar *bar;
 
     QList<WaveGraphWidget *>waveList;
+    QList<Graph *>graphWidgetList;
 
     int graphQueueSize;
 

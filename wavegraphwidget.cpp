@@ -10,7 +10,7 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     setCursorColor( Qt::black );
     setRightCursorColor( Qt::black );
     setFrameColor( Qt::black );
-    setYValueColor( Qt::darkGray );
+    setYValueColor( Qt::black );
 
     // Setup default graph status
     setAutoUpdateYMax( false );

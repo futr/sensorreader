@@ -237,6 +237,13 @@ void Widget::clearGraph()
     }
 }
 
+void Widget::setPrintMode(bool enable)
+{
+    for ( auto &elem : graphWidgetList ) {
+        elem->setPrintMode( enable );
+    }
+}
+
 void Widget::enableAnalyzedGraph(bool enable)
 {
     ui->velocity->setVisible( enable );
@@ -408,7 +415,7 @@ void Widget::on_readCardButton_clicked()
     deleteAll();
 
     ////////// 解析開始
-    if ( !analyzeLog( dirName, accFileName, gyroFileName, analyzedFileName, param.xUnit ) ) {
+    if ( !analyzeLog( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit ) ) {
         return;
     }
 
@@ -652,6 +659,7 @@ QString Widget::saveLogFile( QString dirName )
 
 void Widget::createWaveList()
 {
+    /*
     waveList << ui->acc->wave;
     waveList << ui->gyro->wave;
     waveList << ui->mag->wave;
@@ -661,6 +669,21 @@ void Widget::createWaveList()
     waveList << ui->vLen->wave;
     waveList << ui->pos->wave;
     waveList << ui->posLen->wave;
+    */
+
+    graphWidgetList << ui->acc;
+    graphWidgetList << ui->gyro;
+    graphWidgetList << ui->mag;
+    graphWidgetList << ui->pressure;
+    graphWidgetList << ui->temp;
+    graphWidgetList << ui->velocity;
+    graphWidgetList << ui->vLen;
+    graphWidgetList << ui->pos;
+    graphWidgetList << ui->posLen;
+
+    for ( auto &elem : graphWidgetList ) {
+        waveList << elem->wave;
+    }
 }
 
 void Widget::setupDefaultWaveParams()
@@ -774,22 +797,46 @@ void Widget::showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QSt
     ui->velocity->wave->moveHeadToHead( true, false );
 }
 
-bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileName, QString analyzedFileName, double xUnit)
+bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double xUnit)
 {
     Q_UNUSED( dirName )
 
     // ログ解析して位置と速度に
+    // 使わないログも多いけど、一応全部読む
     TableDataReader accReader;
     TableDataReader gyroReader;
+    TableDataReader magReader;
+    TableDataReader pressureReader;
+    TableDataReader tempReader;
+    TableDataReader analyzedReader;
 
-    // Open log
-    if ( !accReader.readFile( accFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+    bool useMag = false;
+    bool usePressure = false;
+    bool useTemp = false;
+
+    // 開く
+    if ( accFileName != "" && !accReader.readFile( accFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
         QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a acceleration log file" ) );
         return false;
     }
 
-    if ( !gyroReader.readFile( gyroFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+    if ( gyroFileName != "" && !gyroReader.readFile( gyroFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
         QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a angular velocity log file" ) );
+        return false;
+    }
+
+    if ( magFileName != "" && !( useMag = magReader.readFile( magFileName, TableDataReader::Comma, TableDataReader::Title ) ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Magnetic field log file" ) );
+        return false;
+    }
+
+    if ( pressureFileName != "" && !( usePressure = pressureReader.readFile( pressureFileName, TableDataReader::Comma, TableDataReader::Title ) ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a pressure log file" ) );
+        return false;
+    }
+
+    if ( tempFileName != "" && !( useTemp = tempReader.readFile( tempFileName, TableDataReader::Comma, TableDataReader::Title ) ) ) {
+        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a temperature log file" ) );
         return false;
     }
 
@@ -820,22 +867,25 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     // Calculation
     bool exist;
     int zeroSampleCount = dataDialog->getZeroCount();
-    // double threshold    = 0.006;
-    // double thresholdLen = 0.02;
     quint32 zeroStartTime = dataDialog->getZeroStartTime();
     quint32 zeroEndTime   = dataDialog->getZeroEndTime();
     quint32 endTime     = dataDialog->getEndTime();
     double gVal = dataDialog->getG();
 
-    QVector< double > rowData;
+    // 処理方法クオータニオンを使う?
+    bool useQuaternion = true;
+
+
     QVector3D avrZeroGyro;
     QVector3D avrZeroAcc;
     QVector<double> timeVector;
-    QVector<double> matchLevel;
     QVector<double> offsetedAccLength;
     QVector<double> modifiedAccLength;
     QVector<QVector3D> rotateAxis( 3 );
     QVector<QVector3D> minusRotateAxis( 3 );
+    QList<QVector3D> mag;
+    QList<QVector<double> > pressure;
+    QList<QVector<double> > temp;
     QList<QVector3D> unitX;
     QList<QVector3D> unitY;
     QList<QVector3D> unitZ;
@@ -846,18 +896,46 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     QList<QVector3D> velocity;
     QList<QVector3D> position;
     QList<QMatrix4x4> dTranslate;
-    QList<QMatrix4x4> dMinusTranslate;
     QList<QQuaternion> qList;
     QVector<double> zeroAccX( zeroSampleCount );
     QVector<double> zeroAccY( zeroSampleCount );
     QVector<double> zeroAccZ( zeroSampleCount );
-    QVector<double> zeroOffsetedAccLength( zeroSampleCount );
 
     int dataStartRow;
     int dataEndRow;
     int zeroStartRow;
     int zeroEndRow;
     int dataCount;
+
+    // 磁場読み込み
+    if ( useMag ) {
+        magReader.getRowFromColumnValue( 0, zeroStartTime, TableDataReader::ProportionalValue, &exist, &zeroStartRow );
+        magReader.getRowFromColumnValue( 0, zeroEndTime, TableDataReader::ProportionalValue, &exist, &zeroEndRow );
+
+        for ( int i = zeroStartRow; i <= zeroEndRow; i++ ) {
+            mag << rowToVec3D( magReader.getRow( i ) );
+        }
+    }
+
+    // 気圧読み込み
+    if ( usePressure ) {
+        pressureReader.getRowFromColumnValue( 0, zeroStartTime, TableDataReader::ProportionalValue, &exist, &zeroStartRow );
+        pressureReader.getRowFromColumnValue( 0, zeroEndTime, TableDataReader::ProportionalValue, &exist, &zeroEndRow );
+
+        for ( int i = zeroStartRow; i <= zeroEndRow; i++ ) {
+            pressure << pressureReader.getRow( i );
+        }
+    }
+
+    // 温度読み込み
+    if ( useTemp ) {
+        tempReader.getRowFromColumnValue( 0, zeroStartTime, TableDataReader::ProportionalValue, &exist, &zeroStartRow );
+        tempReader.getRowFromColumnValue( 0, zeroEndTime, TableDataReader::ProportionalValue, &exist, &zeroEndRow );
+
+        for ( int i = zeroStartRow; i <= zeroEndRow; i++ ) {
+            temp << tempReader.getRow( i );
+        }
+    }
 
     // Calc zeroGyro
     gyroReader.getRowFromColumnValue( 0, zeroStartTime, TableDataReader::ProportionalValue, &exist, &zeroStartRow );
@@ -888,7 +966,6 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     // DEBUG Change data start row to zeroStartRow
     dataStartRow = zeroStartRow;
     accReader.getRowFromColumnValue( 0, endTime, TableDataReader::ProportionalValue, &exist, &dataEndRow );
-    // dataEndRow   = accReader.rowCount() - 1;
     dataCount    = dataEndRow - dataStartRow + 1;
 
     // Create time vector;
@@ -912,46 +989,48 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     }
 
     // クオータニオンをつかってみる
-    for ( int i = dataStartRow; i <= dataEndRow; i++ ) {
-        if ( i == dataStartRow ) {
-            qList.append( QQuaternion() );
-        } else {
-            // クオータニオンの計算
-            // 角速度ベクトルを作る( 角度に変換済みのを角速度に戻してラジアンに )
-            // 本来4x3行列だけど，めんどくさいので4x4を使う
-            double time;
-            QVector4D omega( ( rowToVec3D( gyroReader.getRow( i - 1 ) ) - avrZeroGyro ) / 180.0 * M_PI );
-            QMatrix4x4 E;
-            QQuaternion dq, q;
+    if ( useQuaternion ) {
+        for ( int i = dataStartRow; i <= dataEndRow; i++ ) {
+            if ( i == dataStartRow ) {
+                qList.append( QQuaternion() );
+            } else {
+                // クオータニオンの計算
+                // 角速度ベクトルを作る( 角度に変換済みのを角速度に戻してラジアンに )
+                // 本来4x3行列だけど，めんどくさいので4x4を使う
+                double time;
+                QVector4D omega( ( rowToVec3D( gyroReader.getRow( i - 1 ) ) - avrZeroGyro ) / 180.0 * M_PI );
+                QMatrix4x4 E;
+                QQuaternion dq, q;
 
-            q = qList[i - dataStartRow - 1];
+                q = qList[i - dataStartRow - 1];
 
-            E( 0, 0 ) = q.scalar();
-            E( 0, 1 ) = -q.z();
-            E( 0, 2 ) = q.y();
+                E( 0, 0 ) = q.scalar();
+                E( 0, 1 ) = -q.z();
+                E( 0, 2 ) = q.y();
 
-            E( 1, 0 ) = q.z();
-            E( 1, 1 ) = q.scalar();
-            E( 1, 2 ) = -q.x();
+                E( 1, 0 ) = q.z();
+                E( 1, 1 ) = q.scalar();
+                E( 1, 2 ) = -q.x();
 
-            E( 2, 0 ) = -q.y();
-            E( 2, 1 ) = q.x();
-            E( 2, 2 ) = q.scalar();
+                E( 2, 0 ) = -q.y();
+                E( 2, 1 ) = q.x();
+                E( 2, 2 ) = q.scalar();
 
-            E( 3, 0 ) = -q.x();
-            E( 3, 1 ) = -q.y();
-            E( 3, 2 ) = -q.z();
+                E( 3, 0 ) = -q.x();
+                E( 3, 1 ) = -q.y();
+                E( 3, 2 ) = -q.z();
 
-            // クオターニオンの微分を作る
-            dq = QQuaternion( 1.0 / 2 * E * omega );
+                // クオターニオンの微分を作る
+                dq = QQuaternion( 1.0 / 2 * E * omega );
 
-            // 積分
-            time = ( gyroReader.getRow( i )[0] - gyroReader.getRow( i - 1 )[0] ) * 0.0001;
+                // 積分
+                time = ( gyroReader.getRow( i )[0] - gyroReader.getRow( i - 1 )[0] ) * 0.0001;
 
-            q = q + ( dq * time );
-            q.normalize();
+                q = q + ( dq * time );
+                q.normalize();
 
-            qList.append( q );
+                qList.append( q );
+            }
         }
     }
 
@@ -959,11 +1038,6 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     rotateAxis = groundAxisFromG( avrZeroAcc );
     minusRotateAxis = rotateAxis;
 
-    // DEBUG クオータニオン
-
-    // calc translate matrix
-    // DEBUG invalid index sequence?
-    // for ( int i = dataStartRow; i <= dataEndRow; i++ ) {
     for ( int i = 0; i < dataCount; i++ ) {
         // Create translate matrix
         QMatrix4x4 trans, minusTrans;
@@ -974,24 +1048,7 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
         trans.rotate( dGyro[i].z(), 0, 0, 1 );
         dTranslate.append( trans );
 
-        /*
         minusTrans.setToIdentity();
-        minusTrans.rotate( -dGyro[i].x(), 1, 0, 0 );
-        minusTrans.rotate( -dGyro[i].y(), 0, 1, 0 );
-        minusTrans.rotate( -dGyro[i].z(), 0, 0, 1 );
-        dMinusTranslate.append( minusTrans );
-        */
-
-        // DEBUG use rotated rotate matrix
-
-        minusTrans.setToIdentity();
-
-        /*
-        minusTrans.rotate( -dGyro[i].x(), rotateAxis[0] );
-        minusTrans.rotate( -dGyro[i].y(), rotateAxis[1] );
-        minusTrans.rotate( -dGyro[i].z(), rotateAxis[2] );
-        */
-
         minusTrans.rotate( -dGyro[i].x(), 1, 0, 0 );
         minusTrans.rotate( -dGyro[i].y(), 0, 1, 0 );
         minusTrans.rotate( -dGyro[i].z(), 0, 0, 1 );
@@ -1010,61 +1067,44 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
         // Rotate and update rotate axis
         QMatrix4x4 transRotateAxis;
 
-        // DEBUG 返還前のとあとのどちらがよいのか
-        /*
-        unitX.append( rotateAxis[0] );
-        unitY.append( rotateAxis[1] );
-        unitZ.append( rotateAxis[2] );
-        */
-
         if ( i == 0 ) {
             unitX.append( rotateAxis[0] );
             unitY.append( rotateAxis[1] );
             unitZ.append( rotateAxis[2] );
         } else {
-            QQuaternion q;
+            if ( useQuaternion ) {
+                QQuaternion q;
 
-            q = qList[i];
+                q = qList[i];
 
-            transRotateAxis.setToIdentity();
-            transRotateAxis.rotate( q );
+                transRotateAxis.setToIdentity();
+                transRotateAxis.rotate( q );
 
+                QVector3D rx = transRotateAxis * QVector3D( 1, 0, 0 );
+                QVector3D ry = transRotateAxis * QVector3D( 0, 1, 0 );
+                QVector3D rz = transRotateAxis * QVector3D( 0, 0, 1 );
 
+                QVector3D ux = rotateAxis[0] * rx.x() + rotateAxis[1] * rx.y() + rotateAxis[2] * rx.z();
+                QVector3D uy = rotateAxis[0] * ry.x() + rotateAxis[1] * ry.y() + rotateAxis[2] * ry.z();
+                QVector3D uz = rotateAxis[0] * rz.x() + rotateAxis[1] * rz.y() + rotateAxis[2] * rz.z();
 
+                unitX.append( ux );
+                unitY.append( uy );
+                unitZ.append( uz );
+            } else {
+                transRotateAxis.setToIdentity();
+                transRotateAxis.rotate( dGyro[i].x(), rotateAxis[0] );
+                transRotateAxis.rotate( dGyro[i].y(), rotateAxis[1] );
+                transRotateAxis.rotate( dGyro[i].z(), rotateAxis[2] );
 
+                rotateAxis[0] = transRotateAxis * rotateAxis[0];
+                rotateAxis[1] = transRotateAxis * rotateAxis[1];
+                rotateAxis[2] = transRotateAxis * rotateAxis[2];
 
-            QVector3D rx = transRotateAxis * QVector3D( 1, 0, 0 );
-            QVector3D ry = transRotateAxis * QVector3D( 0, 1, 0 );
-            QVector3D rz = transRotateAxis * QVector3D( 0, 0, 1 );
-
-            /*
-            QVector3D rx = qList[i].rotatedVector( QVector3D( 1, 0, 0 ) );
-            QVector3D ry = qList[i].rotatedVector( QVector3D( 0, 1, 0 ) );
-            QVector3D rz = qList[i].rotatedVector( QVector3D( 0, 0, 1 ) );
-            */
-
-            QVector3D ux = rotateAxis[0] * rx.x() + rotateAxis[1] * rx.y() + rotateAxis[2] * rx.z();
-            QVector3D uy = rotateAxis[0] * ry.x() + rotateAxis[1] * ry.y() + rotateAxis[2] * ry.z();
-            QVector3D uz = rotateAxis[0] * rz.x() + rotateAxis[1] * rz.y() + rotateAxis[2] * rz.z();
-//            QVector3D ux=rx;
-//            QVector3D uy=ry;
-//            QVector3D uz=rz;
-
-            /*
-            QVector3D ux = rx * rotateAxis[0].x() + ry * rotateAxis[0].y() + rz * rotateAxis[0].z();
-            QVector3D uy = rx * rotateAxis[1].x() + ry * rotateAxis[1].y() + rz * rotateAxis[1].z();
-            QVector3D uz = rx * rotateAxis[2].x() + ry * rotateAxis[2].y() + rz * rotateAxis[2].z();
-            */
-
-            /*
-            ux.normalize();
-            uy.normalize();
-            uz.normalize();
-            */
-
-            unitX.append( ux );
-            unitY.append( uy );
-            unitZ.append( uz );
+                unitX.append( rotateAxis[0] );
+                unitY.append( rotateAxis[1] );
+                unitZ.append( rotateAxis[2] );
+            }
         }
     }
 
@@ -1073,9 +1113,7 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
         QVector3D acc( rowToVec3D( accReader.getRow( i ) ) );
 
         // DEBUG Do not offset
-        ///////// offsetedAcc.append( acc - rotatedG[i - dataStartRow] );
         offsetedAcc.append( acc );
-        // offsetedAcc.append( acc - rotatedG[i - dataStartRow] );
     }
 
     // Calc offseted acc length
@@ -1095,94 +1133,75 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
         modifiedAccLength[i] = modifiedAcc[i].length();
     }
 
-
     // DEBUG : Create velocity and position by rotated acc vector
     // calc velocity
+    // 三角形部分の値も計算することで積分するか、しないかを以下で切り替えてる。
+    // とりあえず今は三角形をつかう
+    // もともとはクオータニオン版でのみ使ってた
     velocity.append( QVector3D( 0, 0, 0 ) );
 
-    for ( int i = 1; i < dataCount; i++ ) {
-        // QVector3D acc( offsetedAcc[i - 1] );
-        QVector3D acc1( modifiedAcc[i - 1] );
-        QVector3D acc2( modifiedAcc[i] );
-        // QVector3D acc( modifiedAcc[i] );
-        // QVector3D rotatedAvrAcc( 0, 0, avrZeroAcc.length() );
-        QVector3D rotatedAvrAcc( rotateAxis[0] * avrZeroAcc.x() + rotateAxis[1] * avrZeroAcc.y() + rotateAxis[2] * avrZeroAcc.z() );
+    if ( true /*useQuaternion*/ ) {
+        for ( int i = 1; i < dataCount; i++ ) {
+            QVector3D acc1( modifiedAcc[i - 1] );
+            QVector3D acc2( modifiedAcc[i] );
+            QVector3D rotatedAvrAcc( rotateAxis[0] * avrZeroAcc.x() + rotateAxis[1] * avrZeroAcc.y() + rotateAxis[2] * avrZeroAcc.z() );
 
-        acc1 = unitX[i - 1] * acc1.x() + unitY[i - 1] * acc1.y() + unitZ[i - 1] * acc1.z();
-        acc2 = unitX[i] * acc2.x() + unitY[i] * acc2.y() + unitZ[i] * acc2.z();
-        // acc = ( unitX[i] + unitY[i] + unitZ[i] );
+            acc1 = unitX[i - 1] * acc1.x() + unitY[i - 1] * acc1.y() + unitZ[i - 1] * acc1.z();
+            acc2 = unitX[i] * acc2.x() + unitY[i] * acc2.y() + unitZ[i] * acc2.z();
 
-        QVector3D a1 = gVal * ( acc1 - rotatedAvrAcc );
-        QVector3D a2 = gVal * ( acc2 - rotatedAvrAcc );
-        double t1 = timeVector[i - 1];
-        double t2 = timeVector[i];
-        QVector3D v1 = velocity[i - 1];
-        QVector3D v2;
-        v2.setX( calcArea( QVector2D( t1, a1.x() ), QVector2D( t2, a2.x() ) ) );
-        v2.setY( calcArea( QVector2D( t1, a1.y() ), QVector2D( t2, a2.y() ) ) );
-        v2.setZ( calcArea( QVector2D( t1, a1.z() ), QVector2D( t2, a2.z() ) ) );
+            QVector3D a1 = gVal * ( acc1 - rotatedAvrAcc );
+            QVector3D a2 = gVal * ( acc2 - rotatedAvrAcc );
+            double t1 = timeVector[i - 1];
+            double t2 = timeVector[i];
+            QVector3D v1 = velocity[i - 1];
+            QVector3D v2;
+            v2.setX( calcArea( QVector2D( t1, a1.x() ), QVector2D( t2, a2.x() ) ) );
+            v2.setY( calcArea( QVector2D( t1, a1.y() ), QVector2D( t2, a2.y() ) ) );
+            v2.setZ( calcArea( QVector2D( t1, a1.z() ), QVector2D( t2, a2.z() ) ) );
 
-        v2 = v2 + v1;
+            v2 = v2 + v1;
 
-        velocity.append( v2 );
+            velocity.append( v2 );
+        }
 
+        // calc position
+        position.append( QVector3D( 0, 0, 0 ) );
 
-        // velocity.append( 9.80665 * ( acc + rotatedG[i] ) * ( timeVector[i] - timeVector[i - 1] ) + velocity[i - 1] );
-        //velocity.append(  * ( timeVector[i] - timeVector[i - 1] ) + velocity[i - 1] );
-        // velocity.append( 9.80665 * acc * ( timeVector[i] - timeVector[i - 1] ) + velocity[i - 1] );
+        for ( int i = 1; i < dataCount; i++ ) {
+            QVector3D v1( velocity[i - 1] );
+            QVector3D v2( velocity[i] );
+            double t1 = timeVector[i - 1];
+            double t2 = timeVector[i];
+
+            QVector3D p1 = position[i - 1];
+            QVector3D p2;
+
+            p2.setX( calcArea( QVector2D( t1, v1.x() ), QVector2D( t2, v2.x() ) ) );
+            p2.setY( calcArea( QVector2D( t1, v1.y() ), QVector2D( t2, v2.y() ) ) );
+            p2.setZ( calcArea( QVector2D( t1, v1.z() ), QVector2D( t2, v2.z() ) ) );
+
+            p2 = p1 + p2;
+
+            position.append( p2 );
+        }
+    } else {
+        for ( int i = 1; i < dataCount; i++ ) {
+            QVector3D acc( modifiedAcc[i - 1] );
+            QVector3D rotatedAvrAcc( 0, 0, avrZeroAcc.length() );
+
+            acc = unitX[i] * acc.x() + unitY[i] * acc.y() + unitZ[i] * acc.z();
+            velocity.append( gVal * ( acc - rotatedAvrAcc ) * ( timeVector[i] - timeVector[i - 1] ) + velocity[i - 1] );
+        }
+
+        // calc position
+        position.append( QVector3D( 0, 0, 0 ) );
+
+        for ( int i = 1; i < dataCount; i++ ) {
+            QVector3D vel( velocity[i - 1] );
+
+            position.append( vel * ( timeVector[i] - timeVector[i - 1] ) + position[i - 1] );
+        }
     }
-
-    // calc position
-    position.append( QVector3D( 0, 0, 0 ) );
-
-    for ( int i = 1; i < dataCount; i++ ) {
-        QVector3D v1( velocity[i - 1] );
-        QVector3D v2( velocity[i] );
-        double t1 = timeVector[i - 1];
-        double t2 = timeVector[i];
-
-        QVector3D p1 = position[i - 1];
-        QVector3D p2;
-
-        p2.setX( calcArea( QVector2D( t1, v1.x() ), QVector2D( t2, v2.x() ) ) );
-        p2.setY( calcArea( QVector2D( t1, v1.y() ), QVector2D( t2, v2.y() ) ) );
-        p2.setZ( calcArea( QVector2D( t1, v1.z() ), QVector2D( t2, v2.z() ) ) );
-
-        p2 = p1 + p2;
-
-        position.append( p2 );
-
-        // position.append( vel * ( timeVector[i] - timeVector[i - 1] ) + position[i - 1] );
-    }
-
-    /*
-    velocity.append( QVector3D( 0, 0, 0 ) );
-
-    for ( int i = 1; i < dataCount; i++ ) {
-        QVector3D acc( modifiedAcc[i - 1] );
-        // QVector3D acc( modifiedAcc[i] );
-        // QVector3D rotatedAvrAcc( 0, 0, avrZeroAcc.length() );
-        QVector3D rotatedAvrAcc( rotateAxis[0] * avrZeroAcc.x() + rotateAxis[1] * avrZeroAcc.y() + rotateAxis[2] * avrZeroAcc.z() );
-
-        // acc = ( unitX[i] + unitY[i] + unitZ[i] );
-
-        velocity.append( 9.80665 * acc * ( timeVector[i] - timeVector[i - 1] ) + velocity[i - 1] );
-    }
-
-    // calc position
-    position.append( QVector3D( 0, 0, 0 ) );
-
-    QVector3D gv;
-
-    for ( int i = 1; i < dataCount; i++ ) {
-        QVector3D vel( velocity[i - 1] );
-        gv = gv + QVector3D( 0, 0, 9.80665 * avrZeroAcc.length() * ( timeVector[i] - timeVector[i - 1] ) );
-
-        vel = unitX[i - 1] * vel.x() + unitY[i - 1] * vel.y() + unitZ[i - 1] * vel.z();
-
-        position.append( ( vel - gv ) * ( timeVector[i] - timeVector[i - 1] ) + position[i - 1] );
-    }
-    */
 
     // Output all data
 
@@ -1195,10 +1214,36 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
               tr( "VelX[m/s]" ) << "," <<
               tr( "VelY[m/s]" ) << "," <<
               tr( "VelZ[m/s]" ) << "," <<
-              tr( "VLen[m/s]" ) <<  "\n";
+              tr( "VLen[m/s]" ) << "," <<
+              tr( "Magnetic fieldX[µT]" ) << "," <<
+              tr( "Magnetic fieldY[µT]" ) << "," <<
+              tr( "Magnetic fieldZ[µT]" ) << "," <<
+              tr( "Pressure[hPa]" ) << "," <<
+              tr( "Temperature[℃]" ) << "\n";
 
     // data outpu loop
     for ( int i = 0; i < dataCount; i++ ) {
+        QVector3D magV;
+        double pressV, tempV;
+
+        if ( useMag && i < mag.count() ) {
+            magV = mag[i];
+        } else {
+            magV = QVector3D( 0, 0, 0 );
+        }
+
+        if ( usePressure && i < pressure.count() ) {
+            pressV = pressure[i][1];
+        } else {
+            pressV = 0;
+        }
+
+        if ( useTemp && i < temp.count() ) {
+            tempV = temp[i][1];
+        } else {
+            tempV = 0;
+        }
+
         stream << timeVector[i]   << "," <<
                   position[i].x() << "," <<
                   position[i].y() << "," <<
@@ -1207,7 +1252,12 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
                   velocity[i].x() << "," <<
                   velocity[i].y() << "," <<
                   velocity[i].z() << "," <<
-                  velocity[i].length() << "\n";
+                  velocity[i].length() << "," <<
+                  magV.x() << "," <<
+                  magV.y() << "," <<
+                  magV.z() << "," <<
+                  pressV << "," <<
+                  tempV << "\n";
     }
 
     // Close
@@ -1370,9 +1420,44 @@ void Widget::on_analyzeFileButton_clicked()
     QString dirName = QFileInfo( dialog->getAccFileName() ).canonicalPath();
     QString analyzedFileName = dirName + "/" + tr( "output.csv" );
 
-    if( !analyzeLog( dirName, dialog->getAccFileName(), dialog->getGyroFileName(), analyzedFileName, param.xUnit ) ) {
+    if( !analyzeLog( dirName, dialog->getAccFileName(), dialog->getGyroFileName(), "", "", "", analyzedFileName, param.xUnit ) ) {
         return;
     }
 
     showAnalyzedLogFiles( dialog->getAccFileName(), dialog->getGyroFileName(), "", "", "", analyzedFileName, param.xUnit, 1 );
+}
+
+void Widget::on_printButton_clicked()
+{
+    // 印刷する
+    QPrinter printer;
+    QPrintDialog *dialog = new QPrintDialog( &printer, this );
+    dialog->deleteLater();
+    dialog->setWindowTitle( tr( "Print graph" ) );
+
+    if ( dialog->exec() != QDialog::Accepted ) {
+        return;
+    }
+
+    // ウィジェットをとりあげて印刷空間に閉じ込める
+    QWidget *widget = ui->scrollAreaWidgetContents;
+    setPrintMode( true );
+    widget->setParent( 0 );
+    widget->setGeometry( 0, 0, 1024, 1024 * 297.0 / 210.0 );
+
+    QPainter painter( &printer );
+
+    double xscale = printer.pageRect().width()  / double( widget->width() );
+    double yscale = printer.pageRect().height() / double( widget->height() );
+    double scale = qMin( xscale, yscale );
+    painter.translate( printer.paperRect().x() + printer.pageRect().width()  / 2,
+                       printer.paperRect().y() + printer.pageRect().height() / 2 ) ;
+    painter.scale( scale, scale );
+    painter.translate( -widget->width() / 2, -widget->height() / 2 );
+
+    widget->render( &painter );
+
+    // ウィジェットをもとに戻す
+    setPrintMode( false );
+    widget->setParent( ui->scrollArea );
 }

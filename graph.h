@@ -20,6 +20,7 @@ public:
 signals:
 
 public slots:
+    void setPrintMode( bool enable );
 
 private:
     QScrollBar *bar;
