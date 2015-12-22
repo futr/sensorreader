@@ -15,7 +15,7 @@
     <message>
         <location filename="analyzefiledialog.ui" line="23"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Analyze position and velocity from already saved angular velocity and acceleration log file.&lt;/p&gt;&lt;p&gt;Please select angular velocity and acceleration log file.&lt;br/&gt;Other files are not needed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;位置と加速度をすでに保存された加速度と角速度のログファイルから計算します。&lt;/p&gt;&lt;p&gt;加速度と角速度のログファイルを選択してください。&lt;br/&gt;その他のファイルは必須ではありません。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="analyzefiledialog.ui" line="33"/>
@@ -39,17 +39,17 @@
     <message>
         <location filename="analyzefiledialog.ui" line="81"/>
         <source>&amp;Magnetic Field</source>
-        <translation type="unfinished"></translation>
+        <translation>磁場(&amp;M)</translation>
     </message>
     <message>
         <location filename="analyzefiledialog.ui" line="105"/>
         <source>&amp;Pressure</source>
-        <translation type="unfinished"></translation>
+        <translation>気圧(&amp;P)</translation>
     </message>
     <message>
         <location filename="analyzefiledialog.ui" line="129"/>
         <source>&amp;Temperature</source>
-        <translation type="unfinished"></translation>
+        <translation>温度(&amp;T)</translation>
     </message>
     <message>
         <location filename="analyzefiledialog.cpp" line="43"/>
@@ -74,17 +74,17 @@
     <message>
         <location filename="analyzefiledialog.cpp" line="64"/>
         <source>Select a Magnetic field log file</source>
-        <translation type="unfinished"></translation>
+        <translation>磁場のログファイルを選択してください</translation>
     </message>
     <message>
         <location filename="analyzefiledialog.cpp" line="69"/>
         <source>Select a Pressure log file</source>
-        <translation type="unfinished"></translation>
+        <translation>気圧のログファイルを選択してください</translation>
     </message>
     <message>
         <location filename="analyzefiledialog.cpp" line="74"/>
         <source>Select a Temperature log file</source>
-        <translation type="unfinished"></translation>
+        <translation>温度のログファイルを選択してください</translation>
     </message>
 </context>
 <context>
@@ -316,7 +316,7 @@ Please select a file.</source>
     <message>
         <location filename="widget.ui" line="257"/>
         <source>&amp;Print graph</source>
-        <translation type="unfinished"></translation>
+        <translation>グラフを印刷(&amp;P)</translation>
     </message>
     <message>
         <source>Update head</source>
@@ -375,22 +375,22 @@ Please select a file.</source>
     <message>
         <location filename="widget.cpp" line="158"/>
         <location filename="widget.cpp" line="179"/>
-        <location filename="widget.cpp" line="371"/>
-        <location filename="widget.cpp" line="506"/>
-        <location filename="widget.cpp" line="523"/>
-        <location filename="widget.cpp" line="533"/>
-        <location filename="widget.cpp" line="540"/>
-        <location filename="widget.cpp" line="725"/>
-        <location filename="widget.cpp" line="730"/>
-        <location filename="widget.cpp" line="735"/>
-        <location filename="widget.cpp" line="740"/>
-        <location filename="widget.cpp" line="745"/>
-        <location filename="widget.cpp" line="750"/>
-        <location filename="widget.cpp" line="826"/>
-        <location filename="widget.cpp" line="831"/>
-        <location filename="widget.cpp" line="836"/>
-        <location filename="widget.cpp" line="841"/>
-        <location filename="widget.cpp" line="846"/>
+        <location filename="widget.cpp" line="374"/>
+        <location filename="widget.cpp" line="509"/>
+        <location filename="widget.cpp" line="526"/>
+        <location filename="widget.cpp" line="536"/>
+        <location filename="widget.cpp" line="543"/>
+        <location filename="widget.cpp" line="728"/>
+        <location filename="widget.cpp" line="733"/>
+        <location filename="widget.cpp" line="738"/>
+        <location filename="widget.cpp" line="743"/>
+        <location filename="widget.cpp" line="748"/>
+        <location filename="widget.cpp" line="753"/>
+        <location filename="widget.cpp" line="829"/>
+        <location filename="widget.cpp" line="834"/>
+        <location filename="widget.cpp" line="839"/>
+        <location filename="widget.cpp" line="843"/>
+        <location filename="widget.cpp" line="847"/>
         <location filename="widget.cpp" line="867"/>
         <source>Error</source>
         <translation>エラー</translation>
@@ -406,100 +406,100 @@ Please select a file.</source>
         <translation>接続確認に失敗しました</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="275"/>
-        <location filename="widget.cpp" line="281"/>
+        <location filename="widget.cpp" line="278"/>
+        <location filename="widget.cpp" line="284"/>
         <location filename="widget.cpp" line="1413"/>
         <source>Information</source>
         <translation>情報</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="275"/>
+        <location filename="widget.cpp" line="278"/>
         <source>SD card reading is only supported on Windows</source>
         <translation>SDカードの読み込みはWindowsのみで使用することができます</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="281"/>
+        <location filename="widget.cpp" line="284"/>
         <location filename="widget.cpp" line="1413"/>
         <source>Can&apos;t open card during connected to sensor</source>
         <translation>センサーと通信中はSDカードを読み込むことができません</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="287"/>
+        <location filename="widget.cpp" line="290"/>
         <source>Select a directory to save</source>
         <translation>ファイルを保存する場所を選択してください</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="319"/>
-        <location filename="widget.cpp" line="576"/>
-        <location filename="widget.cpp" line="590"/>
+        <location filename="widget.cpp" line="322"/>
+        <location filename="widget.cpp" line="579"/>
+        <location filename="widget.cpp" line="593"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="320"/>
-        <location filename="widget.cpp" line="591"/>
+        <location filename="widget.cpp" line="323"/>
+        <location filename="widget.cpp" line="594"/>
         <source>File writing failed</source>
         <translation>ファイルの書き込みに失敗しました</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="321"/>
-        <location filename="widget.cpp" line="592"/>
+        <location filename="widget.cpp" line="324"/>
+        <location filename="widget.cpp" line="595"/>
         <source>A problem has occurred on current operation.</source>
         <translation>何らかの問題が発生しました。</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="371"/>
+        <location filename="widget.cpp" line="374"/>
         <source>Can&apos;t open a file to save</source>
         <translation>保存用のファイルの作成に失敗しました</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="406"/>
+        <location filename="widget.cpp" line="409"/>
         <source>Question</source>
         <translation>質問</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="406"/>
+        <location filename="widget.cpp" line="409"/>
         <source>Do you want to continue to Analysis step?</source>
         <translation>続けて位置と速度の解析を行いますか？</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="419"/>
+        <location filename="widget.cpp" line="422"/>
         <location filename="widget.cpp" line="1428"/>
         <source>output.csv</source>
         <translation>解析結果.csv</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="725"/>
-        <location filename="widget.cpp" line="826"/>
+        <location filename="widget.cpp" line="728"/>
+        <location filename="widget.cpp" line="829"/>
         <source>Can&apos;t open a acceleration log file</source>
         <translation>加速度のログファイルを開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="730"/>
-        <location filename="widget.cpp" line="831"/>
+        <location filename="widget.cpp" line="733"/>
+        <location filename="widget.cpp" line="834"/>
         <source>Can&apos;t open a angular velocity log file</source>
         <translation>角速度のログファイルを開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="735"/>
-        <location filename="widget.cpp" line="836"/>
+        <location filename="widget.cpp" line="738"/>
+        <location filename="widget.cpp" line="839"/>
         <source>Can&apos;t open a Magnetic field log file</source>
         <translation>磁場のログファイルを開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="740"/>
-        <location filename="widget.cpp" line="841"/>
+        <location filename="widget.cpp" line="743"/>
+        <location filename="widget.cpp" line="843"/>
         <source>Can&apos;t open a pressure log file</source>
         <translation>気圧のログファイルを開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="745"/>
-        <location filename="widget.cpp" line="846"/>
+        <location filename="widget.cpp" line="748"/>
+        <location filename="widget.cpp" line="847"/>
         <source>Can&apos;t open a temperature log file</source>
         <translation>温度のログファイルを開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="750"/>
+        <location filename="widget.cpp" line="753"/>
         <source>Can&apos;t open a Analyzed log file</source>
         <translation>解析結果のログファイルを開けませんでした</translation>
     </message>
@@ -551,32 +551,32 @@ Please select a file.</source>
     <message>
         <location filename="widget.cpp" line="1225"/>
         <source>Magnetic fieldX[µT]</source>
-        <translation type="unfinished"></translation>
+        <translation>磁場X[μT]</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="1226"/>
         <source>Magnetic fieldY[µT]</source>
-        <translation type="unfinished"></translation>
+        <translation>磁場Y[μT]</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="1227"/>
         <source>Magnetic fieldZ[µT]</source>
-        <translation type="unfinished"></translation>
+        <translation>磁場Z[μT]</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="1228"/>
         <source>Pressure[hPa]</source>
-        <translation type="unfinished"></translation>
+        <translation>気圧[hPa]</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="1229"/>
         <source>Temperature[℃]</source>
-        <translation type="unfinished"></translation>
+        <translation>温度[℃]</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="1443"/>
         <source>Print graph</source>
-        <translation type="unfinished"></translation>
+        <translation>グラフを印刷する</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="1220"/>
@@ -584,37 +584,37 @@ Please select a file.</source>
         <translation>距離[m]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="433"/>
+        <location filename="widget.cpp" line="436"/>
         <source>Complete</source>
         <translation>完了</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="433"/>
+        <location filename="widget.cpp" line="436"/>
         <source>All operation is successfully completed.</source>
         <translation>すべての処理が正常に完了しました。</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="506"/>
+        <location filename="widget.cpp" line="509"/>
         <source>Can&apos;t open selected drive</source>
         <translation>指定されたドライブが開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="523"/>
+        <location filename="widget.cpp" line="526"/>
         <source>Can&apos;t get physical drive name</source>
         <translation>物理ドライブ名の取得に失敗しました</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="533"/>
+        <location filename="widget.cpp" line="536"/>
         <source>Can&apos;t open device</source>
         <translation>指定されたデバイスが開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="540"/>
+        <location filename="widget.cpp" line="543"/>
         <source>Can&apos;t open FileSystem</source>
         <translation>ファイルシステムが開けませんでした</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="577"/>
+        <location filename="widget.cpp" line="580"/>
         <source>This file seems to be broken
 
 </source>
@@ -623,31 +623,31 @@ Please select a file.</source>
 </translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="578"/>
+        <location filename="widget.cpp" line="581"/>
         <source>File saving process will take very long time because reading entire of SD card.
 </source>
         <translation>破損したファイルを可能な限り保存するために、SDカード全体を保存する必要があり処理に非常に時間がかかります。
 </translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="579"/>
+        <location filename="widget.cpp" line="582"/>
         <source>Please save a file about 1 or 2 minutes, and then cancel saving.
 </source>
         <translation>１、２分程度保存処理を実行して、キャンセルを押してください。
 </translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="580"/>
+        <location filename="widget.cpp" line="583"/>
         <source>If the saved file is not enough, Please try again and save the file in more long time.</source>
         <translation>キャンセルを押すまでのデータは正常に保存されるので、保存されたデータに必要な情報が含まれているか確認し、足りない場合はもう少し長い時間保存処理を再度実行してください。</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="601"/>
+        <location filename="widget.cpp" line="604"/>
         <source>Overwrite</source>
         <translation>上書き確認</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="601"/>
+        <location filename="widget.cpp" line="604"/>
         <source>%1 is already existing.
 Overwrite it?</source>
         <translation>%1はすでに存在します。
