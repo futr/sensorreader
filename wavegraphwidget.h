@@ -111,6 +111,9 @@ public:
     QColor getYValueColor() const;
     void setYValueColor(const QColor &value);
 
+    bool getShowXGridValue() const;
+    void setShowXGridValue(bool value);
+
 private:
     DataQueue::iterator pixPosToIterator( int x );
     void resetIterator();
@@ -165,6 +168,7 @@ private:
     bool showCursorValue;
     bool showHeadValue;
     bool showYGridValue;
+    bool showXGridValue;
 
     bool defaultHeadUpdate;
 

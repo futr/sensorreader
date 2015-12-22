@@ -5,6 +5,10 @@
 #include <QLibraryInfo>
 
 #include <QWidget>
+#include <QPicture>
+#include <QtSvg/QSvgGenerator>
+#include <QtSvg/QSvgRenderer>
+#include <QBuffer>
 #include <QStatusBar>
 #include "serialsensormanager.h"
 #include "connectdialog.h"
@@ -70,7 +74,7 @@ private slots:
     void on_readCardButton_clicked();
 
     void setXScale( int scale );
-    void setXGrid( int width );
+    void setXGrid( double width );
     void headUpdated( double rawX );
     void setDefaultUpdateHead( bool val );
 

@@ -52,6 +52,7 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     showCursorValue = true;
     showHeadValue   = true;
     showYGridValue  = true;
+    showXGridValue  = true;
 
     defaultHeadUpdate = true;
 
@@ -439,6 +440,16 @@ void WaveGraphWidget::setHead(int headIndex)
 {
     this->headIndex = headIndex;
 }
+bool WaveGraphWidget::getShowXGridValue() const
+{
+    return showXGridValue;
+}
+
+void WaveGraphWidget::setShowXGridValue(bool value)
+{
+    showXGridValue = value;
+}
+
 
 QColor WaveGraphWidget::getYValueColor() const
 {
@@ -949,7 +960,31 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
     p.setPen( gridColor );
 
     for ( double x = 0; x < width(); x += xScale * xGrid ) {
-        p.drawLine( width() -  x, 0, width() - x, height() );
+        double devX = width() - x;
+        double xVal;
+
+        if ( forceRequestedRawX ) {
+            xVal = requestRawX - x / xScale;
+        } else {
+            xVal = (*head)[0] - x / xScale;
+        }
+
+        p.drawLine( devX, 0, devX, height() );
+
+        // Draw x grid value
+        if ( showXGridValue ) {
+            font.setPixelSize( defaultFontSize );
+            p.setFont( font );
+
+            QString str = QString::number( xVal );
+            QRect fr = p.fontMetrics().boundingRect( str );
+
+            pen.setColor( gridColor );
+            p.setPen( pen );
+
+            p.drawText( QRectF( devX - fr.width() - 2, height() - fr.height(), fr.width() + 5, fr.height() + 5 ), str );
+
+        }
     }
 
     // Check available
@@ -1061,8 +1096,11 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
         pen.setColor( yValueColor );
         p.setPen( pen );
 
+        p.fillRect( width() - frTop.width() - 2, 1, frTop.width(), frTop.height(), QColor( 255, 255, 255, 180 ) );
+        p.fillRect( width() - frBottom.width() - 2, height() - frBottom.height() - 1, frBottom.width(), frBottom.height(), QColor( 255, 255, 255, 180 ) );
+
         p.drawText( QRectF( width() - frTop.width() - 2, 1, frTop.width() + 5, frTop.height() + 5 ), strTop );
-        p.drawText( QRectF( width() - frBottom.width() - 2, height() - frBottom.height(), frBottom.width() + 5, frBottom.height() + 5 ), strBottom );
+        p.drawText( QRectF( width() - frBottom.width() - 2, height() - frBottom.height() - 1, frBottom.width() + 5, frBottom.height() + 5 ), strBottom );
     }
 
     // Draw wave

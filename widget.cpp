@@ -111,7 +111,7 @@ Widget::Widget(QWidget *parent) :
 
     // Connect
     connect( ui->xScaleSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setXScale(int)) );
-    connect( ui->timeGridSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setXGrid(int)) );
+    connect( ui->timeGridSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setXGrid(double)) );
     connect( ui->updateHeadCheckBox, SIGNAL(toggled(bool)), this, SLOT(setDefaultUpdateHead(bool)) );
 
     for ( auto &elem : waveList ) {
@@ -241,6 +241,16 @@ void Widget::setPrintMode(bool enable)
 {
     for ( auto &elem : graphWidgetList ) {
         elem->setPrintMode( enable );
+
+        /*
+        if ( enable ) {
+            elem->wave->setDefaultFontSize( 16 );
+            elem->wave->setLegendFontSize( 16 );
+        } else {
+            elem->wave->setDefaultFontSize( 12 );
+            elem->wave->setLegendFontSize( 12 );
+        }
+        */
     }
 }
 
@@ -433,7 +443,7 @@ void Widget::setXScale( int scale )
     }
 }
 
-void Widget::setXGrid(int width)
+void Widget::setXGrid(double width)
 {
     for ( auto &elem : waveList ) {
         elem->setXGrid( width );
@@ -827,17 +837,14 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
 
     if ( magFileName != "" && !( useMag = magReader.readFile( magFileName, TableDataReader::Comma, TableDataReader::Title ) ) ) {
         QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Magnetic field log file" ) );
-        return false;
     }
 
     if ( pressureFileName != "" && !( usePressure = pressureReader.readFile( pressureFileName, TableDataReader::Comma, TableDataReader::Title ) ) ) {
         QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a pressure log file" ) );
-        return false;
     }
 
     if ( tempFileName != "" && !( useTemp = tempReader.readFile( tempFileName, TableDataReader::Comma, TableDataReader::Title ) ) ) {
         QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a temperature log file" ) );
-        return false;
     }
 
     // データ範囲を指定する
@@ -1424,7 +1431,7 @@ void Widget::on_analyzeFileButton_clicked()
         return;
     }
 
-    showAnalyzedLogFiles( dialog->getAccFileName(), dialog->getGyroFileName(), "", "", "", analyzedFileName, param.xUnit, 1 );
+    showAnalyzedLogFiles( dialog->getAccFileName(), dialog->getGyroFileName(), dialog->getMagFileName(), dialog->getPressureFileName(), dialog->getTempFileName(), analyzedFileName, param.xUnit, 1 );
 }
 
 void Widget::on_printButton_clicked()
@@ -1439,25 +1446,27 @@ void Widget::on_printButton_clicked()
         return;
     }
 
-    // ウィジェットをとりあげて印刷空間に閉じ込める
+    // Print widgets as is into svg
     QWidget *widget = ui->scrollAreaWidgetContents;
+    QBuffer buffer;
+    QSvgGenerator svg;
+
+    // Create svg buffer
+    buffer.open( QIODevice::ReadWrite );
+    svg.setOutputDevice( &buffer );
+
+    // Draw widget
+    QPainter picPainter( &svg );
+
     setPrintMode( true );
-    widget->setParent( 0 );
-    widget->setGeometry( 0, 0, 1024, 1024 * 297.0 / 210.0 );
-
-    QPainter painter( &printer );
-
-    double xscale = printer.pageRect().width()  / double( widget->width() );
-    double yscale = printer.pageRect().height() / double( widget->height() );
-    double scale = qMin( xscale, yscale );
-    painter.translate( printer.paperRect().x() + printer.pageRect().width()  / 2,
-                       printer.paperRect().y() + printer.pageRect().height() / 2 ) ;
-    painter.scale( scale, scale );
-    painter.translate( -widget->width() / 2, -widget->height() / 2 );
-
-    widget->render( &painter );
-
-    // ウィジェットをもとに戻す
+    widget->render( &picPainter );
     setPrintMode( false );
-    widget->setParent( ui->scrollArea );
+
+    picPainter.end();
+
+    // Prin
+    QPainter painter( &printer );
+    QSvgRenderer render( buffer.data() );
+
+    render.render( &painter );
 }

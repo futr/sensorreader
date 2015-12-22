@@ -23,6 +23,21 @@ QString AnalyzeFileDialog::getGyroFileName()
     return ui->gyroFileEdit->text();
 }
 
+QString AnalyzeFileDialog::getMagFileName()
+{
+    return ui->magFileEdit->text();
+}
+
+QString AnalyzeFileDialog::getPressureFileName()
+{
+    return ui->pressureFileEdit->text();
+}
+
+QString AnalyzeFileDialog::getTempFileName()
+{
+    return ui->tempFileEdit->text();
+}
+
 void AnalyzeFileDialog::on_accButton_clicked()
 {
     ui->accFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Acceleration log file" ) ) );
@@ -42,4 +57,19 @@ void AnalyzeFileDialog::okClicked()
     }
 
     accept();
+}
+
+void AnalyzeFileDialog::on_magButton_clicked()
+{
+    ui->magFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Magnetic field log file" ) ) );
+}
+
+void AnalyzeFileDialog::on_pressureButton_clicked()
+{
+    ui->pressureFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Pressure log file" ) ) );
+}
+
+void AnalyzeFileDialog::on_tempButton_clicked()
+{
+    ui->tempFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Temperature log file" ) ) );
 }
