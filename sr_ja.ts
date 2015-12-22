@@ -15,7 +15,7 @@
     <message>
         <location filename="analyzefiledialog.ui" line="23"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Analyze position and velocity from already saved angular velocity and acceleration log file.&lt;/p&gt;&lt;p&gt;Please select angular velocity and acceleration log file.&lt;br/&gt;Other files are not needed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;位置と加速度をすでに保存された加速度と角速度のログファイルから計算します。&lt;/p&gt;&lt;p&gt;加速度と角速度のログファイルを選択してください。&lt;br/&gt;その他のファイルは必須ではありません。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;位置と速度をすでに保存された加速度と角速度のログファイルから計算します。&lt;/p&gt;&lt;p&gt;加速度と角速度のログファイルを選択してください。&lt;br/&gt;その他のファイルは必須ではありません。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="analyzefiledialog.ui" line="33"/>
