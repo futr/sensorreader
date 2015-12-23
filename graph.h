@@ -22,7 +22,7 @@ signals:
 public slots:
     void setPrintMode( bool enable );
 
-private:
+public:
     QScrollBar *bar;
     QVBoxLayout *layout;
     QLabel *label;

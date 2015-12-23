@@ -80,7 +80,7 @@ Widget::Widget(QWidget *parent) :
     ui->pos->wave->setNames( QStringList() << "x[m]" << "y[m]" << "z[m]" );
     ui->pos->wave->setColors( QList<QColor>() << Qt::red << Qt::darkGreen << Qt::blue );
 
-    ui->posLen->setLabel( tr( "Position ( Length from start position )" ) );
+    ui->posLen->setLabel( tr( "Position ( Distance )" ) );
     ui->posLen->wave->setUpSize( 1, graphQueueSize );
     ui->posLen->wave->setAutoUpdateYMax( true );
     ui->posLen->wave->setAutoUpdateYMin( false );
@@ -97,7 +97,7 @@ Widget::Widget(QWidget *parent) :
     ui->velocity->wave->setNames( QStringList() << "Vx[m/s]" << "Vy[m/s]" << "Vz[m/s]" );
     ui->velocity->wave->setColors( QList<QColor>() << Qt::red << Qt::darkGreen << Qt::blue );
 
-    ui->vLen->setLabel( tr( "Velocity ( Length )" ) );
+    ui->vLen->setLabel( tr( "Velocity ( Speed )" ) );
     ui->vLen->wave->setUpSize( 1, graphQueueSize );
     ui->vLen->wave->setAutoUpdateYMax( true );
     ui->vLen->wave->setAutoUpdateYMin( false );
@@ -241,6 +241,18 @@ void Widget::setPrintMode(bool enable)
 {
     for ( auto &elem : graphWidgetList ) {
         elem->setPrintMode( enable );
+
+        if ( enable ) {
+            QFont f = elem->label->font();
+            f.setPointSizeF( 11 );
+            elem->label->setFont( f );
+        } else {
+            QFont f = elem->label->font();
+            f.setPointSizeF( defaultLabelPoint );
+            elem->label->setFont( f );
+        }
+
+        elem->update();
 
         /*
         if ( enable ) {
@@ -690,6 +702,8 @@ void Widget::createWaveList()
     graphWidgetList << ui->vLen;
     graphWidgetList << ui->pos;
     graphWidgetList << ui->posLen;
+
+    defaultLabelPoint = ui->acc->label->font().pointSizeF();
 
     for ( auto &elem : graphWidgetList ) {
         waveList << elem->wave;
@@ -1438,6 +1452,8 @@ void Widget::on_printButton_clicked()
 {
     // 印刷する
     QPrinter printer;
+    printer.setOutputFormat( QPrinter::NativeFormat );
+
     QPrintDialog *dialog = new QPrintDialog( &printer, this );
     dialog->deleteLater();
     dialog->setWindowTitle( tr( "Print graph" ) );
@@ -1446,8 +1462,9 @@ void Widget::on_printButton_clicked()
         return;
     }
 
-    // Print widgets as is into svg
     QWidget *widget = ui->scrollAreaWidgetContents;
+
+    // Print widgets as is into svg
     QBuffer buffer;
     QSvgGenerator svg;
 
@@ -1459,6 +1476,7 @@ void Widget::on_printButton_clicked()
     QPainter picPainter( &svg );
 
     setPrintMode( true );
+    widget->adjustSize();
     widget->render( &picPainter );
     setPrintMode( false );
 
@@ -1468,5 +1486,15 @@ void Widget::on_printButton_clicked()
     QPainter painter( &printer );
     QSvgRenderer render( buffer.data() );
 
-    render.render( &painter );
+    // 大きさ情報計算
+    QRectF r = painter.window();
+    double ratio = widget->height() / double( widget->width() );
+    double height = r.width() * ratio;
+
+    if ( height < r.height() ) {
+        // スケーリング防止はとりあえずしない
+        // r.setHeight( height );
+    }
+
+    render.render( &painter, r );
 }

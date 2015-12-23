@@ -76,4 +76,5 @@ win32 {
 }
 
 DISTFILES += \
-    win.rc
+    win.rc \
+    sensorreader.exe.manifest

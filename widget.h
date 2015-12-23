@@ -111,6 +111,8 @@ private:
 
     int graphQueueSize;
 
+    double defaultLabelPoint;
+
     // QWidget interface
 protected:
     virtual void closeEvent(QCloseEvent *);

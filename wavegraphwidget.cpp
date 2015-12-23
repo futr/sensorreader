@@ -39,7 +39,7 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     legendOffsetX = 5;
     legendOffsetY = 5;
     legendLineWidth = 2;
-    legendLineLength = 30;
+    legendLineLength = 10;
     legendFontSize = 20;
 
     defaultFontSize = 15;

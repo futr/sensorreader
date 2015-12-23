@@ -40,12 +40,20 @@ QString AnalyzeFileDialog::getTempFileName()
 
 void AnalyzeFileDialog::on_accButton_clicked()
 {
-    ui->accFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Acceleration log file" ) ) );
+    auto str = QFileDialog::getOpenFileName( this, tr( "Select a Acceleration log file" ) );
+
+    if ( str != "" ) {
+        ui->accFileEdit->setText( str );
+    }
 }
 
 void AnalyzeFileDialog::on_gyroButton_clicked()
 {
-    ui->gyroFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Angular velocity log file" ) ) );
+    auto str = QFileDialog::getOpenFileName( this, tr( "Select a Angular velocity log file" ) );
+
+    if ( str != "" ) {
+        ui->gyroFileEdit->setText( str );
+    }
 }
 
 void AnalyzeFileDialog::okClicked()
@@ -61,15 +69,27 @@ void AnalyzeFileDialog::okClicked()
 
 void AnalyzeFileDialog::on_magButton_clicked()
 {
-    ui->magFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Magnetic field log file" ) ) );
+    auto str = QFileDialog::getOpenFileName( this, tr( "Select a Magnetic field log file" ) );
+
+    if ( str != "" ) {
+        ui->magFileEdit->setText( str );
+    }
 }
 
 void AnalyzeFileDialog::on_pressureButton_clicked()
 {
-    ui->pressureFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Pressure log file" ) ) );
+    auto str = QFileDialog::getOpenFileName( this, tr( "Select a Pressure log file" ) );
+
+    if ( str != "" ) {
+        ui->pressureFileEdit->setText( str );
+    }
 }
 
 void AnalyzeFileDialog::on_tempButton_clicked()
 {
-    ui->tempFileEdit->setText( QFileDialog::getOpenFileName( this, tr( "Select a Temperature log file" ) ) );
+    auto str = QFileDialog::getOpenFileName( this, tr( "Select a Temperature log file" ) );
+
+    if ( str != "" ) {
+        ui->tempFileEdit->setText( str );
+    }
 }

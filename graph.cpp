@@ -7,8 +7,11 @@ Graph::Graph(QWidget *parent) : QWidget(parent),
     wave( new WaveGraphWidget( this ) )
 {
     // Setup
+    setSizePolicy( QSizePolicy::Preferred, QSizePolicy::MinimumExpanding );
+
     bar->setOrientation( Qt::Horizontal );
     label->setText( "text" );
+    label->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Maximum );
 
     wave->setMinimumSize( 0, 110 );
     wave->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::MinimumExpanding );
@@ -18,7 +21,8 @@ Graph::Graph(QWidget *parent) : QWidget(parent),
     layout->addWidget( label );
     layout->addWidget( wave );
     layout->addWidget( bar );
-    layout->setSpacing( 0 );
+    layout->setSpacing( 1 );
+    layout->setContentsMargins( 1, 1, 1, 1 );
 
     // Connect
     connect( wave, SIGNAL(rangeChanged(int,int)), bar, SLOT(setRange(int,int)), Qt::DirectConnection );
