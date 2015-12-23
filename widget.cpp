@@ -328,6 +328,7 @@ void Widget::on_readCardButton_clicked()
     CSVWriteFileWorker *worker  = new CSVWriteFileWorker();
     ProgressDialog *progress = new ProgressDialog( this );
     progress->setProgressPos( 0, 0, 0, "Null" );
+    progress->setWindowTitle( tr( "Analyzing log file" ) );
     QMessageBox warningBox;
 
     // Setup warning box
@@ -417,14 +418,6 @@ void Widget::on_readCardButton_clicked()
         warningBox.exec();
     }
 
-    ////////// 続行確認
-    if ( QMessageBox::question( this, tr( "Question" ), tr( "Do you want to continue to Analysis step?" ) ) != QMessageBox::Yes ) {
-        // 破棄
-        deleteAll();
-
-        return;
-    }
-
     ////////// 解析用、表示用にCSVを読み込み用にファイル名
     QString accFileName  = dirName + "/" + filterMap[ID_MPU9150_ACC][0]->getFileName();
     QString gyroFileName = dirName + "/" + filterMap[ID_MPU9150_GYRO][0]->getFileName();
@@ -432,6 +425,17 @@ void Widget::on_readCardButton_clicked()
     QString pressureFileName = dirName + "/" + filterMap[ID_LPS331AP][0]->getFileName();
     QString tempFileName = dirName + "/" + filterMap[ID_MPU9150_TEMP][0]->getFileName();
     QString analyzedFileName = dirName + "/" + tr( "output.csv" );
+
+    ////////// 続行確認
+    if ( QMessageBox::question( this, tr( "Question" ), tr( "Do you want to continue to Analysis step?" ) ) != QMessageBox::Yes ) {
+        // 保存されたデータを表示
+        showAnalyzedLogFiles( accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, "", param.xUnit, 1 );
+
+        // 破棄
+        deleteAll();
+
+        return;
+    }
 
     // もういらなので破棄
     deleteAll();
@@ -632,6 +636,7 @@ QString Widget::saveLogFile( QString dirName )
     progress->deleteLater();
     progress->setProgressPos( 0, 0, 0, "Null" );
     progress->setProgressMax( fp->sector_count );
+    progress->setWindowTitle( tr( "Saving log file" ) );
 
     // Start file access
     micomfs_start_fread( fp, 0 );
@@ -737,34 +742,53 @@ void Widget::showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QSt
     TableDataReader tempReader;
     TableDataReader analyzedReader;
 
-    // 開く
-    if ( accFileName != "" && !accReader.readFile( accFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a acceleration log file" ) );
-        return;
+    // 開いて表示
+    if ( accFileName != "" ) {
+        if ( !accReader.readFile( accFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a acceleration log file" ) );
+        } else {
+            ui->acc->wave->setQueueDataFromList( accReader.tableData, rawXUnit );
+        }
     }
 
-    if ( gyroFileName != "" && !gyroReader.readFile( gyroFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a angular velocity log file" ) );
-        return;
+    if ( gyroFileName != "" ) {
+        if ( !gyroReader.readFile( gyroFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a angular velocity log file" ) );
+        } else {
+            ui->gyro->wave->setQueueDataFromList( gyroReader.tableData, rawXUnit );
+        }
     }
 
-    if ( magFileName != "" && !magReader.readFile( magFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Magnetic field log file" ) );
-        return;
+    if ( magFileName != "" ) {
+        if ( !magReader.readFile( magFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Magnetic field log file" ) );
+        } else {
+            ui->mag->wave->setQueueDataFromList( magReader.tableData, rawXUnit );
+        }
     }
 
-    if ( pressureFileName != "" && !pressureReader.readFile( pressureFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a pressure log file" ) );
-        return;
+    if ( pressureFileName != "" ) {
+        if ( !pressureReader.readFile( pressureFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a pressure log file" ) );
+        } else {
+            ui->pressure->wave->setQueueDataFromList( pressureReader.tableData, rawXUnit );
+        }
     }
 
-    if ( tempFileName != "" && !tempReader.readFile( tempFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a temperature log file" ) );
-        return;
+    if ( tempFileName != "" ) {
+        if ( !tempReader.readFile( tempFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a temperature log file" ) );
+        } else {
+            ui->temp->wave->setQueueDataFromList( tempReader.tableData, rawXUnit );
+        }
     }
 
-    if ( analyzedFileName != "" && !analyzedReader.readFile( analyzedFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Analyzed log file" ) );
+    if ( analyzedFileName != "" ) {
+        if ( !analyzedReader.readFile( analyzedFileName, TableDataReader::Comma, TableDataReader::Title ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open a Analyzed log file" ) );
+            return;
+        }
+    } else {
         return;
     }
 
@@ -794,13 +818,6 @@ void Widget::showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QSt
         vList << v;
         vLenList << vLen;
     }
-
-    // 表示
-    ui->acc->wave->setQueueDataFromList( accReader.tableData, rawXUnit );
-    ui->gyro->wave->setQueueDataFromList( gyroReader.tableData, rawXUnit );
-    ui->mag->wave->setQueueDataFromList( magReader.tableData, rawXUnit );
-    ui->pressure->wave->setQueueDataFromList( pressureReader.tableData, rawXUnit );
-    ui->temp->wave->setQueueDataFromList( tempReader.tableData, rawXUnit );
 
     ui->velocity->wave->setQueueDataFromList( vList, analyzedXUnit );
     ui->vLen->wave->setQueueDataFromList( vLenList, analyzedXUnit );
@@ -923,7 +940,7 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     QVector<double> zeroAccZ( zeroSampleCount );
 
     int dataStartRow;
-    int dataEndRow;
+    int dataEndRowAcc, dataEndRowGyro, dataEndRow;
     int zeroStartRow;
     int zeroEndRow;
     int dataCount;
@@ -986,7 +1003,10 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     // Start integral
     // DEBUG Change data start row to zeroStartRow
     dataStartRow = zeroStartRow;
-    accReader.getRowFromColumnValue( 0, endTime, TableDataReader::ProportionalValue, &exist, &dataEndRow );
+    accReader.getRowFromColumnValue( 0, endTime, TableDataReader::ProportionalValue, &exist, &dataEndRowAcc );
+    gyroReader.getRowFromColumnValue( 0, endTime, TableDataReader::ProportionalValue, &exist, &dataEndRowGyro );
+
+    dataEndRow = qMin( dataEndRowAcc, dataEndRowGyro );
     dataCount    = dataEndRow - dataStartRow + 1;
 
     // Create time vector;
