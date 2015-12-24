@@ -37,6 +37,7 @@
 #include "dataselectdialog.h"
 #include "analyzefiledialog.h"
 #include "analyzeworker.h"
+#include "openfiledialog.h"
 
 namespace Ui {
 class Widget;
@@ -83,6 +84,10 @@ private slots:
 
     void on_printButton_clicked();
 
+    void setTitleDirName( QString dir );
+
+
+    void on_showFileButton_clicked();
 
 private:
     QString saveLogFile( QString dirName );
@@ -90,7 +95,7 @@ private:
     void createWaveList();
     void setupDefaultWaveParams();
 
-    void showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName , double rawXUnit, double analyzedXUnit);
+    void showAnalyzedLogFiles(QString dirName, QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName , double rawXUnit, double analyzedXUnit);
 
     // For analysis
     bool analyzeLog(QString dirName, QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double xUnit);

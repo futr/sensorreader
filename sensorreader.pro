@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     tabledatareader.cpp \
     dataselectdialog.cpp \
     analyzefiledialog.cpp \
-    analyzeworker.cpp
+    analyzeworker.cpp \
+    openfiledialog.cpp
 
 HEADERS  += widget.h \
     wavegraphwidget.h \
@@ -63,7 +64,8 @@ HEADERS  += widget.h \
     tabledatareader.h \
     dataselectdialog.h \
     analyzefiledialog.h \
-    analyzeworker.h
+    analyzeworker.h \
+    openfiledialog.h
 
 FORMS    += widget.ui \
     connectdialog.ui \
@@ -71,7 +73,8 @@ FORMS    += widget.ui \
     logicaldrivedialog.ui \
     fsfileselectdialog.ui \
     dataselectdialog.ui \
-    analyzefiledialog.ui
+    analyzefiledialog.ui \
+    openfiledialog.ui
 
 win32 {
     RC_FILE = win.rc

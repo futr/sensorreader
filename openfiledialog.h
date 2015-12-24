@@ -1,27 +1,30 @@
-#ifndef ANALYZEFILEDIALOG_H
-#define ANALYZEFILEDIALOG_H
+#ifndef OPENFILEDIALOG_H
+#define OPENFILEDIALOG_H
 
 #include <QDialog>
 #include <QFileDialog>
 #include <QMessageBox>
 
 namespace Ui {
-class AnalyzeFileDialog;
+class OpenFileDialog;
 }
 
-class AnalyzeFileDialog : public QDialog
+class OpenFileDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AnalyzeFileDialog(QWidget *parent = 0);
-    ~AnalyzeFileDialog();
+    explicit OpenFileDialog(QWidget *parent = 0);
+    ~OpenFileDialog();
 
     QString getAccFileName();
     QString getGyroFileName();
     QString getMagFileName();
     QString getPressureFileName();
     QString getTempFileName();
+    QString getAnalyzedFileName();
+
+    QString getDirName();
 private slots:
     void on_accButton_clicked();
 
@@ -34,8 +37,10 @@ private slots:
     void on_pressureButton_clicked();
 
     void on_tempButton_clicked();
+    void on_analyzedButton_clicked();
+
 private:
-    Ui::AnalyzeFileDialog *ui;
+    Ui::OpenFileDialog *ui;
 };
 
-#endif // ANALYZEFILEDIALOG_H
+#endif // OpenFileDialog_H

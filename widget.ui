@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>732</width>
-    <height>616</height>
+    <height>569</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,7 +37,7 @@
         <x>0</x>
         <y>0</y>
         <width>601</width>
-        <height>598</height>
+        <height>551</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -168,6 +168,13 @@
       <widget class="QPushButton" name="analyzeFileButton">
        <property name="text">
         <string>&amp;Analyze file</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="showFileButton">
+       <property name="text">
+        <string>Show &amp;file</string>
        </property>
       </widget>
      </item>

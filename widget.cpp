@@ -11,6 +11,9 @@ Widget::Widget(QWidget *parent) :
     // bar = new QStatusBar( this );
     // this->layout()->addWidget( bar );
 
+    // Title
+    QApplication::setApplicationName( tr( "Sensor Reader" ) );
+
     // Sensor
     sensor = new SerialSensorManager( this );
 
@@ -195,6 +198,9 @@ void Widget::on_connectButton_clicked()
 
     // Enable
     enableSerialButtons( true );
+
+    // ウィンドウタイトルクリア
+    setTitleDirName( "" );
 }
 
 void Widget::on_disconnectButton_clicked()
@@ -429,7 +435,7 @@ void Widget::on_readCardButton_clicked()
     ////////// 続行確認
     if ( QMessageBox::question( this, tr( "Question" ), tr( "Do you want to continue to Analysis step?" ) ) != QMessageBox::Yes ) {
         // 保存されたデータを表示
-        showAnalyzedLogFiles( accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, "", param.xUnit, 1 );
+        showAnalyzedLogFiles( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, "", param.xUnit, 1 );
 
         // 破棄
         deleteAll();
@@ -446,7 +452,7 @@ void Widget::on_readCardButton_clicked()
     }
 
     ////////// 保存したデータを表示する
-    showAnalyzedLogFiles( accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit, 1 );
+    showAnalyzedLogFiles( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit, 1 );
 
     // すべての処理完了
     QMessageBox::information( this, tr( "Complete" ), tr( "All operation is successfully completed." ) );
@@ -728,7 +734,7 @@ void Widget::setupDefaultWaveParams()
     }
 }
 
-void Widget::showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double rawXUnit, double analyzedXUnit )
+void Widget::showAnalyzedLogFiles( QString dirName, QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double rawXUnit, double analyzedXUnit )
 {
     // グラフクリア
     clearGraph();
@@ -836,6 +842,9 @@ void Widget::showAnalyzedLogFiles(QString accFileName, QString gyroFileName, QSt
 
     // ヘッド位置が合うようにする
     ui->velocity->wave->moveHeadToHead( true, false );
+
+    // ウィンドウタイトルかえる
+    setTitleDirName( QDir( dirName ).dirName() );
 }
 
 bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double xUnit)
@@ -1004,7 +1013,7 @@ void Widget::on_analyzeFileButton_clicked()
         return;
     }
 
-    showAnalyzedLogFiles( dialog->getAccFileName(), dialog->getGyroFileName(), dialog->getMagFileName(), dialog->getPressureFileName(), dialog->getTempFileName(), analyzedFileName, param.xUnit, 1 );
+    showAnalyzedLogFiles( dirName, dialog->getAccFileName(), dialog->getGyroFileName(), dialog->getMagFileName(), dialog->getPressureFileName(), dialog->getTempFileName(), analyzedFileName, param.xUnit, 1 );
 }
 
 void Widget::on_printButton_clicked()
@@ -1056,4 +1065,45 @@ void Widget::on_printButton_clicked()
     }
 
     render.render( &painter, r );
+}
+
+void Widget::setTitleDirName(QString dir)
+{
+    // ウィンドウのタイトルにファイル名を表示する
+    QString title = tr( "Sensor Reader" );
+
+    if ( dir != "" ) {
+        title = dir + " - " + title;
+    }
+
+    setWindowTitle( title );
+    // QApplication::setApplicationDisplayName( title );
+}
+
+void Widget::on_showFileButton_clicked()
+{
+    // ログファイルを表示
+
+    // センサーと接続されてたら実行できない
+    if ( sensor->isOpen() ) {
+        QMessageBox::information( this, tr( "Information" ), tr( "Can't open card during connected to sensor" ) );
+
+        return;
+    }
+
+    SensorParameters params;
+    SensorParameters::Parameter param = params.getParameter( ui->sensorNameBox->currentText().toStdString() );
+
+    OpenFileDialog *dialog = new OpenFileDialog( this );
+    dialog->deleteLater();
+
+    if ( dialog->exec() != QDialog::Accepted ) {
+        return;
+    }
+
+    QString dirName = dialog->getDirName();
+
+    showAnalyzedLogFiles( dirName, dialog->getAccFileName(), dialog->getGyroFileName(), dialog->getMagFileName(), dialog->getPressureFileName(), dialog->getTempFileName(), dialog->getAnalyzedFileName(), param.xUnit, 1 );
+
+    setTitleDirName( QDir( dirName ).dirName() );
 }
