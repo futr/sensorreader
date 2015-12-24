@@ -36,6 +36,7 @@
 #include "tabledatareader.h"
 #include "dataselectdialog.h"
 #include "analyzefiledialog.h"
+#include "analyzeworker.h"
 
 namespace Ui {
 class Widget;
@@ -94,12 +95,7 @@ private:
     // For analysis
     bool analyzeLog(QString dirName, QString accFileName, QString gyroFileName, QString magFileName, QString pressureFileName, QString tempFileName, QString analyzedFileName, double xUnit);
 
-    QVector3D rowToVec3D( QVector< double > row );
-    QVector<double> getColumnVector( const QList<QVector3D> &list, int column, int startRow, int count );
-    QVector<double> getColumnVector( const QVector<double> &vector, int startRow, int count );
-    double vectorLength( const QVector<double> &vector );
-    QVector<QVector3D> groundAxisFromG(QVector3D g );
-    double calcArea( QVector2D p1, QVector2D p2 );
+
 
 private:
     Ui::Widget *ui;

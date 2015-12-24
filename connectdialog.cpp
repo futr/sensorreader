@@ -26,3 +26,14 @@ QString ConnectDialog::getSelectedName()
 {
     return ui->portNameBox->currentText();
 }
+
+void ConnectDialog::okClicked()
+{
+    if ( ui->portNameBox->currentIndex() < 0 || getSelectedName() == "" ) {
+        QMessageBox::information( this, tr( "Information" ), tr( "Please select a port" ) );
+
+        return;
+    }
+
+    accept();
+}

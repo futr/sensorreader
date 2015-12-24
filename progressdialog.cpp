@@ -13,7 +13,7 @@ ProgressDialog::~ProgressDialog()
     delete ui;
 }
 
-void ProgressDialog::setProgressPos( int pos, int max, int bytesPerSec, QString fileName )
+void ProgressDialog::setProgressPos(int pos, int max, int bytesPerSec, QString fileName , bool disableBPS)
 {
     // Set progress bar position and label caption
     ui->progressBar->setMaximum( max );
@@ -21,7 +21,11 @@ void ProgressDialog::setProgressPos( int pos, int max, int bytesPerSec, QString 
 
     QString label;
 
-    label = QString( "%1\n%2 / %3\n%4[MB/s]" ).arg( fileName ).arg( pos ).arg( max ).arg( bytesPerSec / 1024.0 / 1024.0 );
+    if ( !disableBPS ) {
+        label = QString( "%1\n%2 / %3\n%4[MB/s]" ).arg( fileName ).arg( pos ).arg( max ).arg( bytesPerSec / 1024.0 / 1024.0 );
+    } else {
+        label = QString( "%1\n" ).arg( fileName );
+    }
 
     setLabelCaption( label );
 }

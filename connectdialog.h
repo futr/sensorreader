@@ -2,6 +2,7 @@
 #define CONNECTDIALOG_H
 
 #include <QDialog>
+#include <QMessageBox>
 #include "serialsensormanager.h"
 
 namespace Ui {
@@ -20,6 +21,7 @@ public:
     QString getSelectedName();
 
 private slots:
+    void okClicked();
 
 private:
     Ui::ConnectDialog *ui;

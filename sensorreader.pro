@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     csvwritefileworker.cpp \
     tabledatareader.cpp \
     dataselectdialog.cpp \
-    analyzefiledialog.cpp
+    analyzefiledialog.cpp \
+    analyzeworker.cpp
 
 HEADERS  += widget.h \
     wavegraphwidget.h \
@@ -61,7 +62,8 @@ HEADERS  += widget.h \
     csvwritefileworker.h \
     tabledatareader.h \
     dataselectdialog.h \
-    analyzefiledialog.h
+    analyzefiledialog.h \
+    analyzeworker.h
 
 FORMS    += widget.ui \
     connectdialog.ui \

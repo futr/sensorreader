@@ -22,7 +22,7 @@ private:
     Ui::ProgressDialog *ui;
 
 public slots:
-    void setProgressPos( int pos , int max, int bytesPerSec, QString fileName );
+    void setProgressPos( int pos , int max, int bytesPerSec, QString fileName, bool disableBPS = false );
 };
 
 #endif // PROGRESSDIALOG_H
