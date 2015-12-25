@@ -26,6 +26,7 @@
 #include <QtMath>
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
+#include <QPdfWriter>
 #include "logicaldrivedialog.h"
 #include "progressdialog.h"
 #include "fsfileselectdialog.h"
@@ -79,6 +80,7 @@ private slots:
     void setXGrid( double width );
     void headUpdated( double rawX );
     void setDefaultUpdateHead( bool val );
+    void setMinHeight( int height );
 
     void on_analyzeFileButton_clicked();
 
@@ -88,6 +90,8 @@ private slots:
 
 
     void on_showFileButton_clicked();
+
+    void on_pdfButton_clicked();
 
 private:
     QString saveLogFile( QString dirName );

@@ -5,7 +5,7 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     // Set default colors
     setBgColor( Qt::white );
     setGridColor( Qt::gray );
-    setZeroGridColor( Qt::black );
+    setZeroGridColor( Qt::darkMagenta );
     setStrColor( Qt::black );
     setCursorColor( Qt::black );
     setRightCursorColor( Qt::black );
@@ -61,6 +61,8 @@ WaveGraphWidget::WaveGraphWidget(QWidget *parent) : QWidget(parent)
     forceRequestedRawX = false;
 
     requestRawX = 0;
+
+    yGridCount = 0;
 }
 
 QColor WaveGraphWidget::getBgColor() const
@@ -439,6 +441,16 @@ void WaveGraphWidget::setHead(DataQueue::iterator head, int headIndex, bool over
 void WaveGraphWidget::setHead(int headIndex)
 {
     this->headIndex = headIndex;
+}
+
+int WaveGraphWidget::getYGridCount() const
+{
+    return yGridCount;
+}
+
+void WaveGraphWidget::setYGridCount(int value)
+{
+    yGridCount = value;
 }
 bool WaveGraphWidget::getShowXGridValue() const
 {
@@ -959,7 +971,7 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
     // Draw x grid
     p.setPen( gridColor );
 
-    for ( double x = 0; x < width(); x += xScale * xGrid ) {
+    for ( double x = xScale * xGrid; x < width(); x += xScale * xGrid ) {
         double devX = width() - x;
         double xVal;
 
@@ -1083,7 +1095,74 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
         }
     }
 
-    // Draw Y Grid value
+    // Draw Y Grid
+    if ( yGridCount > 0 ) {
+        double startY;
+        double yWidth;
+        int count;
+
+        if ( autoZeroCenter ) {
+            startY = localMinY + qAbs( localMaxY - localMinY ) / ( ( yGridCount + 1 ) * 2 );
+            yWidth = qAbs( localMaxY - localMinY ) / ( ( yGridCount + 1 ) * 2 );
+            count = yGridCount;
+        } else {
+            startY = localMinY + qAbs( localMaxY - localMinY ) / ( ( yGridCount + 1 ) );
+            yWidth = qAbs( localMaxY - localMinY ) / ( ( yGridCount + 1 ) );
+            count = yGridCount;
+        }
+
+        for ( int i = 0; i < count; i++ ) {
+            double pixY;
+            pen.setColor( gridColor );
+            p.setPen( pen );
+
+            if ( autoZeroCenter ) {
+                pixY = ( startY + i * yWidth - localMinY ) / ( localMaxY - localMinY ) * height();
+
+                p.drawLine( 0, height() - pixY, width(), height() - pixY );
+                p.drawLine( 0, pixY, width(), pixY );
+            } else {
+                pixY = ( startY + i * yWidth - localMinY ) / ( localMaxY - localMinY ) * height();
+
+                p.drawLine( 0, height() - pixY, width(), height() - pixY );
+            }
+
+            if ( showYGridValue ) {
+                if ( autoZeroCenter ) {
+                    double rawYB = startY + i * yWidth;
+                    double rawYT = startY + ( ( 1 + count ) * 2 - i - 2 ) * yWidth;
+                    font.setPixelSize( defaultFontSize );
+                    p.setFont( font );
+
+                    QString strT = QString::number( rawYT );
+                    QRect frT = p.fontMetrics().boundingRect( strT );
+                    QString strB = QString::number( rawYB );
+                    QRect frB = p.fontMetrics().boundingRect( strB );
+
+                    p.setPen( pen );
+
+                    p.fillRect( width() - frT.width() - 2, pixY - frT.height() - 1, frT.width(), frT.height(), QColor( 255, 255, 255, 180 ) );
+                    p.drawText( QRectF( width() - frT.width() - 2, pixY - frT.height() - 1, frT.width() + 5, frT.height() + 5 ), strT );
+                    p.fillRect( width() - frB.width() - 2, height() - pixY - frB.height() - 1, frB.width(), frB.height(), QColor( 255, 255, 255, 180 ) );
+                    p.drawText( QRectF( width() - frB.width() - 2, height() - pixY - frB.height() - 1, frB.width() + 5, frB.height() + 5 ), strB );
+                } else {
+                    double rawY = startY + i * yWidth;
+                    font.setPixelSize( defaultFontSize );
+                    p.setFont( font );
+
+                    QString str = QString::number( rawY );
+                    QRect fr = p.fontMetrics().boundingRect( str );
+
+                    p.setPen( pen );
+
+                    p.fillRect( width() - fr.width() - 2, height() - pixY - fr.height() - 1, fr.width(), fr.height(), QColor( 255, 255, 255, 180 ) );
+                    p.drawText( QRectF( width() - fr.width() - 2, height() - pixY - fr.height() - 1, fr.width() + 5, fr.height() + 5 ), str );
+                }
+            }
+        }
+    }
+
+    // Draw Top Botto Y Grid value
     if ( showYGridValue ) {
         font.setPixelSize( defaultFontSize );
         p.setFont( font );

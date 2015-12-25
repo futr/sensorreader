@@ -39,6 +39,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->acc->setLabel( tr( "Acceleration" ) );
     ui->acc->wave->setUpSize( 3, graphQueueSize );
+    ui->acc->wave->setYGridCount( 1 );
     ui->acc->wave->setAutoUpdateYMax( true );
     ui->acc->wave->setAutoUpdateYMin( true );
     ui->acc->wave->setAutoZeroCenter( true );
@@ -47,6 +48,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->gyro->setLabel( tr( "Angular Velocity" ) );
     ui->gyro->wave->setUpSize( 3, graphQueueSize );
+    ui->gyro->wave->setYGridCount( 1 );
     ui->gyro->wave->setAutoUpdateYMax( true );
     ui->gyro->wave->setAutoUpdateYMin( true );
     ui->gyro->wave->setAutoZeroCenter( true );
@@ -55,6 +57,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->mag->setLabel( tr( "Magnetic field" ) );
     ui->mag->wave->setUpSize( 3, graphQueueSize );
+    ui->mag->wave->setYGridCount( 1 );
     ui->mag->wave->setAutoUpdateYMax( true );
     ui->mag->wave->setAutoUpdateYMin( true );
     ui->mag->wave->setAutoZeroCenter( true );
@@ -63,6 +66,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->temp->setLabel( tr( "Temperature" ) );
     ui->temp->wave->setUpSize( 1, graphQueueSize );
+    ui->temp->wave->setYGridCount( 3 );
     ui->temp->wave->setAutoUpdateYMax( true );
     ui->temp->wave->setAutoUpdateYMin( true );
     ui->temp->wave->setNames( QStringList() << "x[℃]" );
@@ -70,6 +74,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->pressure->setLabel( tr( "Pressure" ) );
     ui->pressure->wave->setUpSize( 1, graphQueueSize );
+    ui->pressure->wave->setYGridCount( 3 );
     ui->pressure->wave->setAutoUpdateYMax( true );
     ui->pressure->wave->setAutoUpdateYMin( true );
     ui->pressure->wave->setNames( QStringList() << "x[hPa]" );
@@ -77,6 +82,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->pos->setLabel( tr( "Position" ) );
     ui->pos->wave->setUpSize( 3, 100 );
+    ui->pos->wave->setYGridCount( 2 );
     ui->pos->wave->setAutoUpdateYMax( true );
     ui->pos->wave->setAutoUpdateYMin( true );
     ui->pos->wave->setAutoZeroCenter( false );
@@ -85,6 +91,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->posLen->setLabel( tr( "Position ( Distance )" ) );
     ui->posLen->wave->setUpSize( 1, graphQueueSize );
+    ui->posLen->wave->setYGridCount( 3 );
     ui->posLen->wave->setAutoUpdateYMax( true );
     ui->posLen->wave->setAutoUpdateYMin( false );
     ui->posLen->wave->setAutoZeroCenter( false );
@@ -94,6 +101,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->velocity->setLabel( tr( "Velocity" ) );
     ui->velocity->wave->setUpSize( 3, graphQueueSize );
+    ui->velocity->wave->setYGridCount( 2 );
     ui->velocity->wave->setAutoUpdateYMax( true );
     ui->velocity->wave->setAutoUpdateYMin( true );
     ui->velocity->wave->setAutoZeroCenter( false );
@@ -102,6 +110,7 @@ Widget::Widget(QWidget *parent) :
 
     ui->vLen->setLabel( tr( "Velocity ( Speed )" ) );
     ui->vLen->wave->setUpSize( 1, graphQueueSize );
+    ui->vLen->wave->setYGridCount( 3 );
     ui->vLen->wave->setAutoUpdateYMax( true );
     ui->vLen->wave->setAutoUpdateYMin( false );
     ui->vLen->wave->setAutoZeroCenter( false );
@@ -116,6 +125,7 @@ Widget::Widget(QWidget *parent) :
     connect( ui->xScaleSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setXScale(int)) );
     connect( ui->timeGridSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setXGrid(double)) );
     connect( ui->updateHeadCheckBox, SIGNAL(toggled(bool)), this, SLOT(setDefaultUpdateHead(bool)) );
+    connect( ui->minHeightBox, SIGNAL(valueChanged(int)), this, SLOT(setMinHeight(int)) );
 
     for ( auto &elem : waveList ) {
         // Have to use QueuedConnection Not using causes atomic error ( bug? non-reentrant? )
@@ -489,6 +499,13 @@ void Widget::setDefaultUpdateHead(bool val)
 {
     for ( auto &elem : waveList ) {
         elem->setDefaultHeadUpdate( val );
+    }
+}
+
+void Widget::setMinHeight(int height)
+{
+    for ( auto &elem : waveList ) {
+        elem->setMinimumHeight( height );
     }
 }
 
@@ -907,8 +924,8 @@ bool Widget::analyzeLog( QString dirName, QString accFileName, QString gyroFileN
     // データ範囲を指定する
     DataSelectDialog *dataDialog = new DataSelectDialog( this );
     dataDialog->setTable( &accReader, xUnit );
-    dataDialog->setZeroCount( 20 );
-    dataDialog->setG( 9.80665 );
+    dataDialog->setZeroCount( 40 );
+    dataDialog->setG( 9.8 );
     dataDialog->deleteLater();
 
     if ( dataDialog->exec() != QDialog::Accepted ) {
@@ -1106,4 +1123,51 @@ void Widget::on_showFileButton_clicked()
     showAnalyzedLogFiles( dirName, dialog->getAccFileName(), dialog->getGyroFileName(), dialog->getMagFileName(), dialog->getPressureFileName(), dialog->getTempFileName(), dialog->getAnalyzedFileName(), param.xUnit, 1 );
 
     setTitleDirName( QDir( dirName ).dirName() );
+}
+
+void Widget::on_pdfButton_clicked()
+{
+    // PDFに印刷する
+    QString fileName;
+
+    if ( ( fileName = QFileDialog::getSaveFileName( this, tr( "Save to PDF" ), "*.pdf", tr( "PDF (*.pdf)" ) ) ) == "" ) {
+        return;
+    }
+
+    QWidget *widget = ui->scrollAreaWidgetContents;
+
+    // Print widgets as is into svg
+    QBuffer buffer;
+    QSvgGenerator svg;
+
+    // Create svg buffer
+    buffer.open( QIODevice::ReadWrite );
+    svg.setOutputDevice( &buffer );
+
+    // Draw widget
+    QPainter picPainter( &svg );
+
+    setPrintMode( true );
+    widget->adjustSize();
+    widget->render( &picPainter );
+    setPrintMode( false );
+
+    picPainter.end();
+
+    // Prin
+    QPdfWriter writer( fileName );
+    QPainter painter( &writer );
+    QSvgRenderer render( buffer.data() );
+
+    // 大きさ情報計算
+    QRectF r = painter.window();
+    double ratio = widget->height() / double( widget->width() );
+    double height = r.width() * ratio;
+
+    if ( height < r.height() ) {
+        // スケーリング防止はとりあえずしない
+        // r.setHeight( height );
+    }
+
+    render.render( &painter, r );
 }

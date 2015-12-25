@@ -114,6 +114,9 @@ public:
     bool getShowXGridValue() const;
     void setShowXGridValue(bool value);
 
+    int getYGridCount() const;
+    void setYGridCount(int value);
+
 private:
     DataQueue::iterator pixPosToIterator( int x );
     void resetIterator();
@@ -189,6 +192,8 @@ private:
 
     int queueSize;
     int columnCount;
+
+    int yGridCount;
 
     QList<ColorFilter> colorFilterList;
 

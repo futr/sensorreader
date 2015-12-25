@@ -81,14 +81,14 @@
         <number>10000</number>
        </property>
        <property name="value">
-        <number>20</number>
+        <number>40</number>
        </property>
       </widget>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>&amp;Gravitational acceleration</string>
+        <string>&amp;Gravitational acceleration[m/s/s]</string>
        </property>
        <property name="buddy">
         <cstring>gEdit</cstring>
@@ -98,7 +98,7 @@
      <item row="2" column="1">
       <widget class="QLineEdit" name="gEdit">
        <property name="text">
-        <string>9.80665</string>
+        <string>9.795</string>
        </property>
       </widget>
      </item>
@@ -133,8 +133,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>304</x>
-     <y>235</y>
+     <x>313</x>
+     <y>326</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

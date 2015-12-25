@@ -356,7 +356,7 @@ void AnalyzeWorker::doWork()
         // もともとはクオータニオン版でのみ使ってた
         velocity.append( QVector3D( 0, 0, 0 ) );
 
-        if ( true /*useQuaternion*/ ) {
+        if ( useQuaternion ) {
             for ( int i = 1; i < dataCount; i++ ) {
                 QVector3D acc1( modifiedAcc[i - 1] );
                 QVector3D acc2( modifiedAcc[i] );
