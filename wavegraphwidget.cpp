@@ -1253,6 +1253,9 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
         int xStart = width() - ( headX - fStart ) * xScale;
         int xEnd   = width() - ( headX - fEnd ) * xScale;
 
+        if ( xStart < 0 ) xStart = 0;
+        if ( xEnd >= width() ) xEnd = width();
+
         p.setPen( filter.second );
         p.fillRect( xStart, 0, xEnd - xStart, height(), filter.second );
     }
