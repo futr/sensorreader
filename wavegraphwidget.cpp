@@ -1250,8 +1250,8 @@ void WaveGraphWidget::paintEvent(QPaintEvent *)
             continue;
         }
 
-        int xStart = width() - ( headX - fStart ) * xScale;
-        int xEnd   = width() - ( headX - fEnd ) * xScale;
+        int xStart = width() - ( headX - fStart ) * xScale + offX;
+        int xEnd   = width() - ( headX - fEnd ) * xScale + offX;
 
         if ( xStart < 0 ) xStart = 0;
         if ( xEnd >= width() ) xEnd = width();
