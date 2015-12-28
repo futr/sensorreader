@@ -84,6 +84,7 @@ void SerialSensorManager::sendHandshake()
 void SerialSensorManager::flush()
 {
     port.flush();
+    port.waitForBytesWritten( 1000 );
 }
 
 void SerialSensorManager::readData()

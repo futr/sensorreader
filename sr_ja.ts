@@ -699,7 +699,7 @@ Saved file will be broken.</source>
         <location filename="widget.cpp" line="443"/>
         <location filename="widget.cpp" line="1027"/>
         <source>output.csv</source>
-        <translation>解析結果.csv</translation>
+        <translation>計算結果.csv</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="662"/>
