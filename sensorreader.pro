@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     dataselectdialog.cpp \
     analyzefiledialog.cpp \
     analyzeworker.cpp \
-    openfiledialog.cpp
+    openfiledialog.cpp \
+    gpsdatafilter.cpp
 
 HEADERS  += widget.h \
     wavegraphwidget.h \
@@ -65,7 +66,8 @@ HEADERS  += widget.h \
     dataselectdialog.h \
     analyzefiledialog.h \
     analyzeworker.h \
-    openfiledialog.h
+    openfiledialog.h \
+    gpsdatafilter.h
 
 FORMS    += widget.ui \
     connectdialog.ui \

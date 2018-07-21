@@ -39,6 +39,7 @@
 #include "analyzefiledialog.h"
 #include "analyzeworker.h"
 #include "openfiledialog.h"
+#include "gpsdatafilter.h"
 
 namespace Ui {
 class Widget;

@@ -88,6 +88,9 @@ void LogicalDriveDialog::updateLogicalDriveList()
             ui->driveComboBox->addItem( QString().sprintf( "%c", i + 65 ) );
         }
     }
+#else
+    // For mac or Linux
+    ui->driveComboBox->setEditable(true);
 #endif
 }
 

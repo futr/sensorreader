@@ -303,8 +303,9 @@ void Widget::on_readCardButton_clicked()
 
     // Windows only
 #ifndef __WIN32__
-    QMessageBox::information( this, tr( "Information" ), tr( "SD card reading is only supported on Windows" ) );
-    return;
+    QMessageBox::warning( this, tr( "Warning" ), tr( "SD card reading is partially supported on UNIX like OS" ) );
+    // QMessageBox::information( this, tr( "Information" ), tr( "SD card reading is only supported on Windows" ) );
+    // return;
 #endif
 
     // Check connected
@@ -364,6 +365,7 @@ void Widget::on_readCardButton_clicked()
     filterMap[ID_AK8975] = QList<AbstractDataFilter *>() << new MagDataFilter();
     filterMap[ID_MPU9150_TEMP] = QList<AbstractDataFilter *>() << new TempDataFilter();
     filterMap[ID_LPS331AP] = QList<AbstractDataFilter *>() << new PressDataFilter();
+    filterMap[ID_GPS] = QList<AbstractDataFilter *>() << new GPSDataFilter();
 
     // 解像度設定
     dynamic_cast<AccDataFilter *>( filterMap[ID_MPU9150_ACC].last() )->setResolution( param.accelerationResolution );
@@ -572,6 +574,23 @@ QString Widget::saveLogFile( QString dirName )
 
         // Open device ( 権限が不要なので論理ドライブ名のままで実行 )
         if ( !micomfs_open_device( &fs, (char *)wbuf, MicomFSDeviceWinDrive, MicomFSDeviceModeReadWrite ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open device" ) );
+
+            return "";
+        }
+
+        // Open Filesystem
+        if ( !micomfs_init_fs( &fs ) ) {
+            QMessageBox::critical( this, tr( "Error" ), tr( "Can't open FileSystem" ) );
+
+            micomfs_close_device( &fs );
+
+            return "";
+        }
+#else
+        // For unix like os
+        // Open device
+        if ( !micomfs_open_device( &fs, dialog->getSelectedLogicalDriveName().toUtf8().data(), MicomFSDeviceFile, MicomFSDeviceModeRead ) ) {
             QMessageBox::critical( this, tr( "Error" ), tr( "Can't open device" ) );
 
             return "";
