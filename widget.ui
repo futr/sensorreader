@@ -7,11 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>732</width>
-    <height>634</height>
+    <height>712</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Sensor Reader</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resource.qrc">
+    <normaloff>:/icon/icon/icon.ico</normaloff>:/icon/icon/icon.ico</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -36,8 +40,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>601</width>
-        <height>616</height>
+        <width>568</width>
+        <height>694</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -331,6 +335,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

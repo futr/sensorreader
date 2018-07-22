@@ -85,3 +85,6 @@ win32 {
 DISTFILES += \
     win.rc \
     sensorreader.exe.manifest
+
+RESOURCES += \
+    resource.qrc
