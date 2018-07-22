@@ -445,26 +445,31 @@ void Widget::on_readCardButton_clicked()
     QString analyzedFileName = dirName + "/" + tr( "output.csv" );
 
     ////////// 続行確認
-    if ( QMessageBox::question( this, tr( "Question" ), tr( "Do you want to continue to Analysis step?" ) ) != QMessageBox::Yes ) {
-        // 保存されたデータを表示
-        showAnalyzedLogFiles( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, "", param.xUnit, 1 );
+    bool analyzed = false;
 
-        // 破棄
-        deleteAll();
-
-        return;
+    if ( QMessageBox::question( this, tr( "Question" ), tr( "Do you want to continue to Analysis step?" ) ) == QMessageBox::Yes ) {
+        ////////// 解析開始
+        analyzed = analyzeLog( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit );
     }
 
     // もういらなので破棄
     deleteAll();
 
-    ////////// 解析開始
-    if ( !analyzeLog( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit ) ) {
-        return;
+    // Confirm whether to display saved data
+    bool showGraph = false;
+
+    if ( QMessageBox::question( this, tr( "Question" ), tr( "Do you want to show graph of saved data?" ) ) == QMessageBox::Yes ) {
+        showGraph = true;
     }
 
     ////////// 保存したデータを表示する
-    showAnalyzedLogFiles( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit, 1 );
+    if ( showGraph ) {
+        if ( analyzed ) {
+            showAnalyzedLogFiles( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, analyzedFileName, param.xUnit, 1 );
+        } else {
+            showAnalyzedLogFiles( dirName, accFileName, gyroFileName, magFileName, pressureFileName, tempFileName, "", param.xUnit, 1 );
+        }
+    }
 
     // すべての処理完了
     QMessageBox::information( this, tr( "Complete" ), tr( "All operation is successfully completed." ) );
