@@ -30,10 +30,13 @@ void AbstractDataFilter::setFileName(QString name)
 QVector<double> AbstractDataFilter::parseToVector(unsigned int step, QByteArray data)
 {
     // Parse data to double vector
-    Q_UNUSED( step )
     Q_UNUSED( data )
 
-    return QVector<double>();
+    QVector<double> ret;
+
+    ret << step << 0;
+
+    return ret;
 }
 
 void AbstractDataFilter::makeHeader()
