@@ -5,6 +5,17 @@ SensorParameters::SensorParameters()
     // Add parameters
     Parameter p;
 
+    // sensor2 ( condor - aso )
+    p.accelerationResolution    = 0.48828125;
+    p.angularVelocityResolution = 0.030487804;
+    p.magneticFieldResolution   = 0.3;
+    p.pressureResolution        = 0;
+    p.temperatureResolution     = 0;
+    p.xUnit = 1 / 10000.0;
+    p.name = "sensor-condor(ASO)";
+
+    parameters[p.name] = p;
+
     // sensor3.1
     p.accelerationResolution    = 1 / 2048.0 * 1000;
     p.angularVelocityResolution = 1 / 16.4;
@@ -12,7 +23,7 @@ SensorParameters::SensorParameters()
     p.pressureResolution        = 0;
     p.temperatureResolution     = 0;
     p.xUnit = 1 / 10000.0;
-    p.name = "sensor3.1";
+    p.name = "sensor-3.1";
 
     parameters[p.name] = p;
 }
