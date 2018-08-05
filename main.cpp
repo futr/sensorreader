@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QTranslator myappTranslator;
 
     // i18n
-    qtTranslator.load( "sr_" + QLocale::system().name(), QLibraryInfo::location(QLibraryInfo::TranslationsPath) );
+    qtTranslator.load( "qt_" + QLocale::system().name(), QLibraryInfo::location(QLibraryInfo::TranslationsPath) );
     myappTranslator.load( "sr_" + QLocale::system().name() );
 
     a.installTranslator( &qtTranslator );
