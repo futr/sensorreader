@@ -19,7 +19,7 @@ bool GyroDataFilter::parseAndSave(unsigned int step, QByteArray data)
     out << (unsigned int)v[0] << ","
         << QString().sprintf( "%.6e", v[1] ) << ","
         << QString().sprintf( "%.6e", v[2] ) << ","
-        << QString().sprintf( "%.6e", v[3] ) << "\r\n";
+        << QString().sprintf( "%.6e", v[3] ) << '\n';
 
     return true;
 }
@@ -53,5 +53,5 @@ void GyroDataFilter::makeHeader()
     // ヘッダ作成
     QTextStream out( &m_file );
 
-    out << "time[100us],x[dps],y[dps],z[dps]\r\n";
+    out << "time[100us],x[dps],y[dps],z[dps]" << '\n';
 }

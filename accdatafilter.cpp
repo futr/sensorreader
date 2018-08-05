@@ -19,7 +19,7 @@ bool AccDataFilter::parseAndSave(unsigned int step, QByteArray data)
     out << (unsigned int)v[0] << ","
         << QString().sprintf( "%.6e", v[1] ) << ","
         << QString().sprintf( "%.6e", v[2] ) << ","
-        << QString().sprintf( "%.6e", v[3] ) << "\r\n";
+        << QString().sprintf( "%.6e", v[3] ) << '\n';
 
     return true;
 }
@@ -52,5 +52,5 @@ void AccDataFilter::makeHeader()
     // ヘッダ作成
     QTextStream out( &m_file );
 
-    out << "time[100us],x[G],y[G],z[G]\r\n";
+    out << "time[100us],x[G],y[G],z[G]" << '\n';
 }

@@ -15,7 +15,7 @@ bool PressDataFilter::parseAndSave(unsigned int step, QByteArray data)
     QVector<double> v = parseToVector( step, data );
 
     out << (unsigned int)v[0] << ","
-        << QString().sprintf( "%.6e", v[1] ) << "\r\n";
+        << QString().sprintf( "%.6e", v[1] ) << '\n';
 
     return true;
 }
@@ -38,5 +38,5 @@ void PressDataFilter::makeHeader()
     // ヘッダ作成
     QTextStream out( &m_file );
 
-    out << "time[100us],pressure[hPa]\r\n";
+    out << "time[100us],pressure[hPa]" << '\n';
 }
