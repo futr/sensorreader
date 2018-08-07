@@ -524,7 +524,7 @@ Please select a file.</source>
         <location filename="widget.ui" line="321"/>
         <source>About</source>
         <translatorcomment>バージョン情報</translatorcomment>
-        <translation></translation>
+        <translation>バージョン情報</translation>
     </message>
     <message>
         <source>Update head</source>
