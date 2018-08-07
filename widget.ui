@@ -316,6 +316,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="aboutButton">
+       <property name="text">
+        <string>About</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="quitButton">
        <property name="text">
         <string>&amp;Quit</string>
@@ -335,6 +342,28 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>sensorNameBox</tabstop>
+  <tabstop>connectButton</tabstop>
+  <tabstop>handshakeCheckBox</tabstop>
+  <tabstop>disconnectButton</tabstop>
+  <tabstop>startReadButton</tabstop>
+  <tabstop>stopReadButton</tabstop>
+  <tabstop>resetReadButton</tabstop>
+  <tabstop>readCardButton</tabstop>
+  <tabstop>analyzeFileButton</tabstop>
+  <tabstop>showFileButton</tabstop>
+  <tabstop>xScaleSpinBox</tabstop>
+  <tabstop>timeGridSpinBox</tabstop>
+  <tabstop>minHeightBox</tabstop>
+  <tabstop>syncX</tabstop>
+  <tabstop>updateHeadCheckBox</tabstop>
+  <tabstop>printButton</tabstop>
+  <tabstop>pdfButton</tabstop>
+  <tabstop>aboutButton</tabstop>
+  <tabstop>quitButton</tabstop>
+ </tabstops>
  <resources>
   <include location="resource.qrc"/>
  </resources>

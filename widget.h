@@ -94,6 +94,8 @@ private slots:
 
     void on_pdfButton_clicked();
 
+    void on_aboutButton_clicked();
+
 private:
     QString saveLogFile( QString dirName );
 

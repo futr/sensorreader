@@ -436,96 +436,102 @@ Please select a file.</source>
         <translation>センサーリーダー</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="84"/>
+        <location filename="widget.ui" line="88"/>
         <source>&amp;Sensor name</source>
         <translation>センサー名を選択(&amp;S)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="104"/>
+        <location filename="widget.ui" line="108"/>
         <source>&amp;Connect</source>
         <translation>センサーに接続(&amp;C)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="111"/>
+        <location filename="widget.ui" line="115"/>
         <source>&amp;Handshaking</source>
         <translation>接続確認を行う(&amp;H)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="121"/>
+        <location filename="widget.ui" line="125"/>
         <source>&amp;Disconnect</source>
         <translation>センサーを切断(&amp;D)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="135"/>
+        <location filename="widget.ui" line="139"/>
         <source>&amp;Start reading</source>
         <translation>読み込み開始(&amp;S)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="142"/>
+        <location filename="widget.ui" line="146"/>
         <source>S&amp;top reading</source>
         <translation>読み込み停止(&amp;T)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="149"/>
+        <location filename="widget.ui" line="153"/>
         <source>&amp;Reset reading</source>
         <translation>読み込み初期化(&amp;R)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="163"/>
+        <location filename="widget.ui" line="167"/>
         <source>R&amp;ead SD Card</source>
         <translation>SDカード読み込み(&amp;E)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="170"/>
+        <location filename="widget.ui" line="174"/>
         <source>&amp;Analyze file</source>
         <translation>ファイルから計算(&amp;A)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="177"/>
+        <location filename="widget.ui" line="181"/>
         <source>Show &amp;file</source>
         <translation>ファイルを表示(&amp;F)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="191"/>
+        <location filename="widget.ui" line="195"/>
         <source>Ti&amp;me scale</source>
         <translation>時間倍率(&amp;M)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="214"/>
+        <location filename="widget.ui" line="218"/>
         <source>Time &amp;grid width[sec]</source>
         <translation>時間グリッド幅[秒](&amp;G)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="240"/>
+        <location filename="widget.ui" line="244"/>
         <source>&amp;Min graph height</source>
         <translation>最小グラフ高さ(&amp;M)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="263"/>
+        <location filename="widget.ui" line="267"/>
         <source>S&amp;ync slider</source>
         <translation>グラフの時間を同期(&amp;Y)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="273"/>
+        <location filename="widget.ui" line="277"/>
         <source>&amp;Update head</source>
         <translation>最新データに追従(&amp;U)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="290"/>
+        <location filename="widget.ui" line="294"/>
         <source>&amp;Print graph</source>
         <translation>グラフを印刷(&amp;P)</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="297"/>
+        <location filename="widget.ui" line="301"/>
         <source>Save &amp;PDF</source>
         <translation>グラフをPDFに保存(&amp;P)</translation>
+    </message>
+    <message>
+        <location filename="widget.ui" line="321"/>
+        <source>About</source>
+        <translatorcomment>バージョン情報</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <source>Update head</source>
         <translation type="vanished">最新のデータに追従</translation>
     </message>
     <message>
-        <location filename="widget.ui" line="317"/>
+        <location filename="widget.ui" line="328"/>
         <source>&amp;Quit</source>
         <translation>終了(&amp;Q)</translation>
     </message>

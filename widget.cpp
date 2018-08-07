@@ -1195,3 +1195,19 @@ void Widget::on_pdfButton_clicked()
 
     render.render( &painter, r );
 }
+
+void Widget::on_aboutButton_clicked()
+{
+    // About box
+    // About box
+    QString verStr;
+
+    verStr = verStr +
+            QApplication::applicationName() + "\n" +
+            "BUILD : " + QString("%1\n").arg( __DATE__ ) +
+            "(c) 2018 Masato Takahashi\n" +
+            "mas@to.email.ne.jp\n\n" +
+            "MFSAPI : " + MICOMFS_API_VERSION_CODE;
+
+    QMessageBox::about( this, QApplication::applicationName(), verStr );
+}
